@@ -28,6 +28,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Print("Server started")
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":9000", nil)
+	http.HandleFunc("/ws", handler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello"))
+	})
+	http.ListenAndServe(":80", nil)
 }
