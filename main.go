@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"os"
 )
 
 var upgrader = websocket.Upgrader{
@@ -29,5 +30,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Print("Server started")
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":80", nil)
+	http.ListenAndServe(":" + os.Getenv("PORT"), nil)
 }
