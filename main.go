@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -18,6 +19,12 @@ var upgrader = websocket.Upgrader{
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	if conn, err := upgrader.Upgrade(w, r, nil); err == nil {
+		go func() {
+			for {
+				time.After(15 * time.Second)
+				conn.WriteMessage(websocket.BinaryMessage, []byte("Hello"))
+			}
+		}()
 		for {
 			messageType, p, err := conn.ReadMessage()
 			if err == nil {
