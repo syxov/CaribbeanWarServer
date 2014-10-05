@@ -33,6 +33,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Print("Server started")
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/ws", handler)
+	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
+		writer.Write([]byte("some"))
+	})
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
