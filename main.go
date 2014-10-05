@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	db.Open()
 }
 
