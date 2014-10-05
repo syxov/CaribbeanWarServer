@@ -6,8 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 )
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -22,7 +27,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			for {
 				time.Sleep(15 * time.Second)
-				conn.WriteMessage(websocket.BinaryMessage, []byte("Hello"))
+				if err = conn.WriteMessage(websocket.TextMessage, []byte("")); err != nil {
+					return
+				}
 			}
 		}()
 		for {
@@ -42,7 +49,7 @@ func main() {
 	log.Print("Server started")
 	http.HandleFunc("/ws", handler)
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
-		writer.Write([]byte("some"))
+		writer.Write([]byte(""))
 	})
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
