@@ -20,8 +20,11 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+var count byte = 0
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	conn, _ := upgrader.Upgrade(w, r, nil)
+	count++
 	go func() {
 		for {
 			time.Sleep(20 * time.Second)
@@ -32,7 +35,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}()
 	for {
 		messageType, p, _ := conn.ReadMessage()
-		if err := conn.WriteMessage(messageType, p); err != nil {
+		if err := conn.WriteMessage(messageType, append(p, count)); err != nil {
 			conn.Close()
 			return
 		}
