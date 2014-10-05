@@ -21,7 +21,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if conn, err := upgrader.Upgrade(w, r, nil); err == nil {
 		go func() {
 			for {
-				time.After(15 * time.Second)
+				time.Sleep(15 * time.Second)
 				conn.WriteMessage(websocket.BinaryMessage, []byte("Hello"))
 			}
 		}()
