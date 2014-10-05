@@ -19,8 +19,12 @@ var upgrader = websocket.Upgrader{
 func handler(w http.ResponseWriter, r *http.Request) {
 	if conn, err := upgrader.Upgrade(w, r, nil); err == nil {
 		for {
-			messageType, p, _ := conn.ReadMessage()
-			conn.WriteMessage(messageType, p)
+			messageType, p, err := conn.ReadMessage()
+			if err == nil {
+				conn.WriteMessage(messageType, p)
+			} else {
+				conn.WWriteMessage(messageType, []byte("Fuck"))
+			}
 		}
 	} else {
 		log.Print(err)
@@ -30,5 +34,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Print("Server started")
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":" + os.Getenv("PORT"), nil)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
