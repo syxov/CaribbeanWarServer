@@ -1,11 +1,8 @@
-// CaribbeanWar project main.go
 package main
 
 import (
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 )
@@ -23,33 +20,28 @@ var upgrader = websocket.Upgrader{
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	if conn, err := upgrader.Upgrade(w, r, nil); err == nil {
-		go func() {
-			for {
-				time.Sleep(15 * time.Second)
-				if err = conn.WriteMessage(websocket.TextMessage, []byte("")); err != nil {
-					return
-				}
-			}
-		}()
+	conn, _ := upgrader.Upgrade(w, r, nil)
+	go func() {
 		for {
-			messageType, p, err := conn.ReadMessage()
-			if err == nil {
-				conn.WriteMessage(messageType, p)
-			} else {
-				conn.WriteMessage(messageType, []byte("Fuck"))
+			time.Sleep(20 * time.Second)
+			if err := conn.WriteMessage(websocket.TextMessage, []byte("")); err != nil {
+				return
 			}
 		}
-	} else {
-		log.Print(err)
+	}()
+	for {
+		messageType, p, _ := conn.ReadMessage()
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			conn.Close()
+			return
+		}
 	}
 }
 
 func main() {
-	log.Print("Server started")
 	http.HandleFunc("/ws", handler)
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
 		writer.Write([]byte(""))
 	})
-	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.ListenAndServe(":80", nil)
 }
