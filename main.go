@@ -18,6 +18,5 @@ func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
 		writer.Write([]byte("Welcome me dear friend"))
 	})
-	http.ListenAndServe(":88", nil)
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
