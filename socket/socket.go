@@ -17,12 +17,12 @@ var upgrader = websocket.Upgrader{
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	conn, _ := upgrader.Upgrade(w, r, nil)
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
 		}
 	}()
+	conn, _ := upgrader.Upgrade(w, r, nil)
 	defer conn.Close()
 	go ping(conn)
 	for {
@@ -54,7 +54,7 @@ func auth(data interface{}, conn *websocket.Conn) {
 
 func ping(conn *websocket.Conn) {
 	for {
-		time.Sleep(20 * time.Second)
+		time.Sleep(10 * time.Second)
 		if err := conn.WriteMessage(websocket.TextMessage, []byte{}); err != nil {
 			panic("Cannot send message")
 		}
