@@ -23,7 +23,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				conn.WriteMessage(messageType, p)
 			} else {
-				conn.WWriteMessage(messageType, []byte("Fuck"))
+				conn.WriteMessage(messageType, []byte("Fuck"))
 			}
 		}
 	} else {
