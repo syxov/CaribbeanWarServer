@@ -34,8 +34,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	for {
-		messageType, p, _ := conn.ReadMessage()
-		if err := conn.WriteMessage(messageType, append(p, count)); err != nil {
+		messageType, _, _ := conn.ReadMessage()
+		if err := conn.WriteMessage(messageType, []byte{count}); err != nil {
 			conn.Close()
 			return
 		}
