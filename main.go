@@ -40,9 +40,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handler)
-	//http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
-	//	writer.Write([]byte(""))
-	//})
+	http.HandleFunc("/ws", handler)
+	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
+		writer.Write([]byte("Welcome me dear friend"))
+	})
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
