@@ -35,22 +35,22 @@ func (self *dbConnection) CheckUserExist(email, password string) bool {
 	return false
 }
 
-type userInfo struct {
+type UserInfo struct {
 	ID    uint
 	Email string
-	Cash uint
+	Cash  uint
 }
 
-func (self *dbConnection) GetUserInfo(email, password string) *userInfo {
+func (self *dbConnection) GetUserInfo(email, password string) *UserInfo {
 	var (
-		id uint
+		id   uint
 		cash uint
 	)
-	err := self.db.QueryRow("SELECT id, cash FROM users WHERE email='" + email + "'AND password='" + password + "'").Scan(&id, &cash)
+	err := self.db.QueryRow("SELECT id, cash FROM users WHERE email='"+email+"'AND password='"+password+"'").Scan(&id, &cash)
 	if err != nil {
 		log.Print(err)
 		return nil
 	}
-	result := userInfo{id, email, cash}
+	result := UserInfo{id, email, cash}
 	return &result
 }

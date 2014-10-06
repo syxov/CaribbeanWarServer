@@ -3,7 +3,6 @@ package main
 import (
 	"CaribbeanWarServer/api"
 	"net/http"
-	"net/smtp"
 	"os"
 	"runtime"
 )
@@ -17,12 +16,6 @@ func init() {
 }
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			auth := smtp.PlainAuth("", "al.syxov@gmail.com", "505604qw", "smtp.gmail.com")
-			smtp.SendMail("smtp.gmail.com:587", auth, "al.syxov@gmail.com", []string{"al.syxov@gmail.com"}, []byte("try to send"))
-		}
-	}()
 	defer func() {
 		api.DbConn.Close()
 	}()
