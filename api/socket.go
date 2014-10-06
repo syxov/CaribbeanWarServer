@@ -48,7 +48,7 @@ func auth(data interface{}, conn *websocket.Conn) {
 func ping(conn *websocket.Conn) {
 	for {
 		time.Sleep(10 * time.Second)
-		if err := conn.WriteMessage(websocket.TextMessage, []byte{}); err != nil {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte{"{}"}); err != nil {
 			panic("Cannot send message")
 		}
 	}
