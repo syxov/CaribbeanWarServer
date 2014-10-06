@@ -37,10 +37,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func auth(data interface{}, conn *websocket.Conn) {
 	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
-	if DbConn.CheckUserExist(dataMap["email"].(string), dataMap["password"].(string)) {
-		message["details"] = map[string]string{"result": "you are awesome"}
+	if info := DbConn.GetUserInfo(dataMap["email"].(string), dataMap["password"].(string)); info != nil {
+		message["details"] = *info
 	} else {
-		message["details"] = map[string]string{"result": "fuck you"}
+		message["details"] = "User not found"
 	}
 	send(conn, message)
 }
