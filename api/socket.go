@@ -1,8 +1,6 @@
-package socket
+package api
 
 import (
-	"CaribbeanWarServer/db"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
@@ -17,11 +15,6 @@ var upgrader = websocket.Upgrader{
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Print(err)
-		}
-	}()
 	conn, _ := upgrader.Upgrade(w, r, nil)
 	defer conn.Close()
 	go ping(conn)
@@ -44,7 +37,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func auth(data interface{}, conn *websocket.Conn) {
 	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
-	if db.CheckUserExist(dataMap["email"].(string), dataMap["password"].(string)) {
+	if DbConn.CheckUserExist(dataMap["email"].(string), dataMap["password"].(string)) {
 		message["details"] = map[string]string{"result": "you are awesome"}
 	} else {
 		message["details"] = map[string]string{"result": "fuck you"}
