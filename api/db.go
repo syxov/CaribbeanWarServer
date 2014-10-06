@@ -14,23 +14,23 @@ type dbConnection struct {
 	db *sql.DB
 }
 
+func (self *dbConnection) Open() {
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	self.db = db
+}
+
 func (self *dbConnection) Close() {
 	self.db.Close()
 }
 
-func (self *dbConnection) Open() {
-	db, err := sql.Open("postgres", dbUrl)
-	self.db = db
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func (self *dbConnection) CheckUserExist(email, password string) bool {
-	if rows, err := self.db.Query("SELECT id FROM users WHERE email='?' AND password='?'", email, password); err == nil {
+	if rows, err := self.db.Query("SELECT id FROM users WHERE email=$1 AND password=$2", email, password); err == nil {
 		return rows.Next()
 	} else {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	return false
 }
@@ -46,7 +46,7 @@ func (self *dbConnection) GetUserInfo(email, password string) *UserInfo {
 		id   uint
 		cash uint
 	)
-	err := self.db.QueryRow("SELECT id, cash FROM users WHERE email='"+email+"'AND password='"+password+"'").Scan(&id, &cash)
+	err := self.db.QueryRow("SELECT id, cash FROM users WHERE email=$1 AND password=$2", email, password).Scan(&id, &cash)
 	if err != nil {
 		log.Print(err)
 		return nil
