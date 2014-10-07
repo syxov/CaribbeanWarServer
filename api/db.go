@@ -7,21 +7,19 @@ import (
 
 const dbUrl = "postgres://wxkjimhylvjmxu:SYNQgXeUGnWQQbge7LwyPka3SB@ec2-54-225-255-208.compute-1.amazonaws.com:5432/delbcum37jd7n5"
 
-var DbConn = new(dbConnection)
-
-type dbConnection struct {
+type DbConnection struct {
 	db *sql.DB
 }
 
-func (self *dbConnection) Open() {
+func (self *DbConnection) Open() {
 	self.db, _ = sql.Open("postgres", dbUrl)
 }
 
-func (self *dbConnection) Close() {
+func (self *DbConnection) Close() {
 	self.db.Close()
 }
 
-func (self *dbConnection) CheckUserExist(email, password string) bool {
+func (self *DbConnection) CheckUserExist(email, password string) bool {
 	if rows, err := self.db.Query("SELECT id FROM users WHERE email=$1 AND password=$2", email, password); err == nil {
 		return rows.Next()
 	} else {
@@ -29,13 +27,13 @@ func (self *dbConnection) CheckUserExist(email, password string) bool {
 	}
 }
 
-type UserInfo struct {
+type userInfo struct {
 	ID    uint
 	Email string
 	Cash  uint
 }
 
-func (self *dbConnection) GetUserInfo(email, password string) *UserInfo {
+func (self *DbConnection) GetUserInfo(email, password string) *userInfo {
 	var (
 		id   uint
 		cash uint
@@ -44,6 +42,10 @@ func (self *dbConnection) GetUserInfo(email, password string) *UserInfo {
 	if err != nil {
 		return nil
 	}
-	result := UserInfo{id, email, cash}
+	result := userInfo{id, email, cash}
 	return &result
+}
+
+func (self *DbConnection) GetShopItems(id uint) {
+
 }
