@@ -14,8 +14,7 @@ type dbConnection struct {
 }
 
 func (self *dbConnection) Open() {
-	db, _ := sql.Open("postgres", dbUrl)
-	self.db = db
+	self.db, _ = sql.Open("postgres", dbUrl)
 }
 
 func (self *dbConnection) Close() {

@@ -51,9 +51,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func auth(data interface{}, conn *websocket.Conn) uint {
-	dataMap := data.(map[string]interface{})
-	message := map[string]interface{}{"action": "auth"}
-	returnValue := uint(0)
+	var (
+		returnValue uint = 0
+		dataMap          = data.(map[string]interface{})
+		message          = map[string]interface{}{"action": "auth"}
+	)
 	if info := DbConn.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
 		if err := World.Add(info.ID, info.Email, conn); err != nil {
 			message["details"] = map[string]bool{

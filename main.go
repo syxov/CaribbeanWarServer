@@ -4,10 +4,12 @@ import (
 	"CaribbeanWarServer/api"
 	"net/http"
 	"os"
+	"runtime"
 )
 
 func init() {
 	api.DbConn.Open()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	//Set by heroku
 	if os.Getenv("PORT") == "" {
 		os.Setenv("PORT", "80")

@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/gorilla/websocket"
+	"sync"
 )
 
 type user struct {
@@ -12,14 +13,17 @@ type user struct {
 
 type WorldStruct struct {
 	world map[uint]user
+	sync.Mutex
 }
 
 func (self *WorldStruct) Add(id uint, nick string, conn *websocket.Conn) error {
+	self.Lock()
+	defer self.Unlock()
 	if len(self.world) == 0 {
 		self.world = make(map[uint]user)
 	}
 	if _, exist := self.world[id]; !exist {
-		self.world[id] = user{nick, conn}
+		self.world[id] = user{nick: nick, conn: conn}
 		return nil
 	} else {
 		return errors.New("User exist")
@@ -27,13 +31,15 @@ func (self *WorldStruct) Add(id uint, nick string, conn *websocket.Conn) error {
 }
 
 func (self *WorldStruct) Remove(id uint) {
+	self.Lock()
+	defer self.Unlock()
 	delete(self.world, id)
 }
 
 func (self *WorldStruct) ProcessMessage(data map[string]interface{}) {
 	switch data["action"] {
 	case "chat":
-		go self.chatMessage(data)
+		self.chatMessage(data)
 	}
 }
 
