@@ -22,7 +22,7 @@ var upgrader = websocket.Upgrader{
 func Handler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			convertedErr := err.(error)
+			convertedErr := *(err.(*error))
 			auth := smtp.PlainAuth("", "al.syxov@gmail.com", "505604qw", "smtp.gmail.com")
 			smtp.SendMail("smtp.gmail.com:587", auth, "server", []string{"al.syxov@gmail.com"}, []byte(convertedErr.Error()))
 			log.Print(convertedErr.Error())
