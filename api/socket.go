@@ -54,7 +54,7 @@ func auth(data interface{}, conn *websocket.Conn) uint {
 	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
 	returnValue := uint(0)
-	if info := DbConn.GetUserInfo(dataMap["email"].(string), dataMap["password"].(string)); info != nil {
+	if info := DbConn.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
 		if err := World.Add(info.ID, info.Email, conn); err != nil {
 			message["details"] = map[string]bool{
 				"alreadyInGame": true,
@@ -64,7 +64,7 @@ func auth(data interface{}, conn *websocket.Conn) uint {
 			returnValue = info.ID
 		}
 	} else {
-		message["details"] = "User not found"
+		message["details"] = "{}"
 	}
 	send(conn, message)
 	return returnValue
