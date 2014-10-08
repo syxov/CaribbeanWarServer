@@ -1,6 +1,6 @@
 package world
 
-func (self *WorldStruct) chat(data map[string]interface{}) {
+func (self *WorldStruct) chat(id uint, data map[string]interface{}) {
 	sender := data["details"].(map[string]uint)["sender"]
 	userMessage := data["details"].(map[string]string)["message"]
 	message := map[string]interface{}{
@@ -11,7 +11,7 @@ func (self *WorldStruct) chat(data map[string]interface{}) {
 		},
 	}
 	for k, v := range self.world {
-		if k != sender {
+		if k != id {
 			v.conn.WriteJSON(message)
 		}
 	}

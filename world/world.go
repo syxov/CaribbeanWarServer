@@ -48,7 +48,7 @@ func (self *WorldStruct) processMessage(id uint, conn *websocket.Conn) {
 			convertedData := data.(map[string]interface{})
 			switch convertedData["action"] {
 			case "chat":
-				self.chat(convertedData)
+				self.chat(id, convertedData)
 			case "shop":
 				self.shop(convertedData)
 			}

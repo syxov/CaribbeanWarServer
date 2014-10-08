@@ -57,7 +57,7 @@ func auth(data interface{}, conn *websocket.Conn) bool {
 	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
 	if info := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
-		if err := world.Add(info.ID, info.Email, conn); err != nil {
+		if err := world.Add(info.ID, info.Nick, conn); err != nil {
 			message["details"] = map[string]bool{
 				"alreadyInGame": true,
 			}
