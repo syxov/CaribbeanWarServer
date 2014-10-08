@@ -9,9 +9,7 @@ func (self *WorldStruct) chat(id uint, data map[string]interface{}) {
 			"message": convertedData["message"],
 		},
 	}
-	for k, v := range self.world {
-		if k != id {
-			v.conn.WriteJSON(message)
-		}
+	for _, v := range self.world {
+		v.conn.WriteJSON(message)
 	}
 }
