@@ -31,18 +31,20 @@ type userInfo struct {
 	ID    uint
 	Email string
 	Cash  uint
+	Nick  string
 }
 
 func (self *DbConnection) GetUserInfo(email, password string) *userInfo {
 	var (
 		id   uint
 		cash uint
+		nick string
 	)
-	err := self.db.QueryRow("SELECT id, cash FROM users WHERE email=$1 AND password=$2", email, password).Scan(&id, &cash)
+	err := self.db.QueryRow("SELECT id, cash, nick FROM users WHERE email=$1 AND password=$2", email, password).Scan(&id, &cash, &nick)
 	if err != nil {
 		return nil
 	}
-	result := userInfo{id, email, cash}
+	result := userInfo{id, email, cash, nick}
 	return &result
 }
 

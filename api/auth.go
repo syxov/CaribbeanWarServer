@@ -37,8 +37,7 @@ func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *h
 		if err := conn.ReadJSON(&data); err == nil {
 			dataMap := data.(map[string]interface{})
 			if dataMap["action"] == "auth" {
-				added := auth(dataMap["details"], conn)
-				if added {
+				if added := auth(dataMap["details"], conn); added {
 					go ping(conn)
 					return
 				}
@@ -67,7 +66,9 @@ func auth(data interface{}, conn *websocket.Conn) bool {
 			added = true
 		}
 	} else {
-		message["details"] = "{}"
+		message["details"] = `{
+			"authorize": false
+		}`
 	}
 	conn.WriteJSON(message)
 	return added
