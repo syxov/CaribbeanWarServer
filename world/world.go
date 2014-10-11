@@ -42,8 +42,15 @@ func (self *WorldStruct) Remove(id uint) {
 }
 
 func (self *WorldStruct) processMessage(id uint, conn *websocket.Conn) {
-	var data interface{}
+	defer func() {
+		if err := recover(); err != nil {
+			self.sendErrorMessage(conn, err)
+			conn.Close()
+			self.Remove(id)
+		}
+	}()
 	for {
+		var data interface{}
 		if err := conn.ReadJSON(&data); err == nil {
 			convertedData := data.(map[string]interface{})
 			switch convertedData["action"] {
@@ -57,10 +64,14 @@ func (self *WorldStruct) processMessage(id uint, conn *websocket.Conn) {
 				self.Remove(id)
 				return
 			} else { //Problem with json converting
-				errorMessage := map[string]interface{}{"action": "fuckup"}
-				errorMessage["details"] = map[string]string{"message": err.Error()}
-				conn.WriteJSON(errorMessage)
+				self.sendErrorMessage(conn, err.Error())
 			}
 		}
 	}
+}
+
+func (self *WorldStruct) sendErrorMessage(conn *websocket.Conn, err interface{}) {
+	errorMessage := map[string]interface{}{"action": "fuckup"}
+	errorMessage["details"] = map[string]interface{}{"message": err}
+	conn.WriteJSON(errorMessage)
 }
