@@ -27,14 +27,7 @@ func (self *DbConnection) CheckUserExist(email, password string) bool {
 	}
 }
 
-type userInfo struct {
-	ID    uint
-	Email string
-	Cash  uint
-	Nick  string
-}
-
-func (self *DbConnection) GetUserInfo(email, password string) *userInfo {
+func (self *DbConnection) GetUserInfo(email, password string) map[string]interface{} {
 	var (
 		id   uint
 		cash uint
@@ -44,8 +37,7 @@ func (self *DbConnection) GetUserInfo(email, password string) *userInfo {
 	if err != nil {
 		return nil
 	}
-	result := userInfo{id, email, cash, nick}
-	return &result
+	return map[string]interface{}{"id": id, "email": email, "cash": cash, "nick": nick}
 }
 
 func (self *DbConnection) GetShopItems(id uint) {

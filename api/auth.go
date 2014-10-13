@@ -57,12 +57,15 @@ func auth(data interface{}, conn *websocket.Conn) bool {
 	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
 	if info := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
-		if err := world.Add(info.ID, info.Nick, conn); err != nil {
+		if err := world.Add(info["id"].(uint), info["nick"].(string), conn); err != nil {
 			message["details"] = map[string]bool{
 				"inGame": true,
 			}
 		} else {
-			message["details"] = *info
+			message["details"] = map[string]interface{}{"authorize": true}
+			for key, value := range info {
+				message["details"].(map[string]interface{})[key] = value
+			}
 			added = true
 		}
 	} else {
