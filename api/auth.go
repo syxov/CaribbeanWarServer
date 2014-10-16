@@ -31,12 +31,13 @@ func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *h
 	world = _world
 	db = _db
 	return func(w http.ResponseWriter, r *http.Request) {
-		var data map[string]interface{}
+		var data interface{}
 		conn, _ := upgrader.Upgrade(w, r, nil)
 		errorMessage := map[string]interface{}{"action": "fuckup"}
 		if err := conn.ReadJSON(&data); err == nil {
-			if data["action"] == "auth" {
-				if added := auth(data["details"].(map[string]string), conn); added {
+			dataMap := data.(map[string]interface{})
+			if dataMap["action"] == "auth" {
+				if added := auth(dataMap["details"], conn); added {
 					go ping(conn)
 					return
 				}
@@ -51,10 +52,11 @@ func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *h
 	}
 }
 
-func auth(data map[string]string, conn *websocket.Conn) bool {
+func auth(data interface{}, conn *websocket.Conn) bool {
 	added := false
+	dataMap := data.(map[string]interface{})
 	message := map[string]interface{}{"action": "auth"}
-	if info := db.GetUserInfo(data["login"], data["password"]); info != nil {
+	if info := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
 		if err := world.Add(info["id"].(uint), info["nick"].(string), conn); err != nil {
 			message["details"] = map[string]bool{
 				"inGame": true,
@@ -67,7 +69,9 @@ func auth(data map[string]string, conn *websocket.Conn) bool {
 			added = true
 		}
 	} else {
-		message["details"] = map[string]bool{"authorize": false}
+		message["details"] = `{
+			"authorize": false
+		}`
 	}
 	conn.WriteJSON(message)
 	return added
