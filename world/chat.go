@@ -1,6 +1,6 @@
 package world
 
-func (self *WorldStruct) chat(data map[string]interface{}) {
+func (self *storage) chat(data map[string]interface{}) {
 	convertedData := data["details"].(map[string]interface{})
 	message := map[string]interface{}{
 		"action": "chat",
@@ -11,7 +11,7 @@ func (self *WorldStruct) chat(data map[string]interface{}) {
 	}
 	self.Lock()
 	defer self.Unlock()
-	for _, v := range self.world {
-		v.conn.WriteJSON(message)
+	for _, v := range self.userList {
+		v.Conn.WriteJSON(message)
 	}
 }

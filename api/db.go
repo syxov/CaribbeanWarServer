@@ -1,6 +1,7 @@
 package api
 
 import (
+	"CaribbeanWarServer/structs"
 	"database/sql"
 	_ "github.com/lib/pq"
 )
@@ -19,27 +20,55 @@ func (self *DbConnection) Close() {
 	self.db.Close()
 }
 
-func (self *DbConnection) CheckUserExist(email, password string) bool {
-	if rows, err := self.db.Query("SELECT id FROM users WHERE email=$1 AND password=$2", email, password); err == nil {
-		return rows.Next()
-	} else {
-		return false
-	}
-}
-
-func (self *DbConnection) GetUserInfo(email, password string) map[string]interface{} {
+func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, error) {
 	var (
-		id   uint
-		cash uint
-		nick string
+		id       uint
+		cash     uint
+		nick     string
+		location []uint8
+
+		name        string
+		weight      uint16
+		cannonCount byte
+		speed       uint16
+		hp          uint16
 	)
-	err := self.db.QueryRow("SELECT id, cash, nick FROM users WHERE email=$1 AND password=$2", email, password).Scan(&id, &cash, &nick)
+	err := self.db.QueryRow(`
+		SELECT id, cash, nick, location FROM users 
+		WHERE email=$1 AND password=$2
+	`, email, password).Scan(&id, &cash, &nick, &location)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return map[string]interface{}{"id": id, "email": email, "cash": cash, "nick": nick}
-}
-
-func (self *DbConnection) GetShopItems(id uint) {
-
+	rows, err := self.db.Query(`
+		SELECT * FROM ships
+		WHERE id IN (
+			SELECT ship_id FROM user_ships
+			WHERE user_id=$1
+		)
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	ships := []structs.Ship{}
+	for rows.Next() {
+		rows.Scan(&id, &name, &weight, &cannonCount, &speed, &hp)
+		ships = append(ships, structs.Ship{
+			ID:          id,
+			Name:        name,
+			Weight:      weight,
+			CannonCount: cannonCount,
+			Speed:       speed,
+			HP:          hp,
+		})
+	}
+	return &structs.User{
+		ID:           id,
+		Email:        email,
+		Cash:         cash,
+		Nick:         nick,
+		Location:     structs.Point{float64(location[0]), float64(location[1])},
+		Ships:        ships,
+		SelectedShip: nil,
+	}, nil
 }

@@ -2,20 +2,19 @@ package main
 
 import (
 	"CaribbeanWarServer/api"
-	"CaribbeanWarServer/world"
+	"CaribbeanWarServer/harbor"
 	"net/http"
 	"os"
 	"runtime"
 )
 
 var (
-	worldStr world.WorldStruct
-	dbConn   api.DbConnection
+	dbConn    api.DbConnection
+	harborStr harbor.HarborStruct
 )
 
 func init() {
 	dbConn.Open()
-	worldStr = world.WorldStruct{DbConn: &dbConn}
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if os.Getenv("PORT") == "" {
 		os.Setenv("PORT", "80")
@@ -24,7 +23,7 @@ func init() {
 
 func main() {
 	defer dbConn.Close()
-	http.HandleFunc("/ws", api.Handler(&worldStr, dbConn))
+	http.HandleFunc("/ws", api.Handler(&harborStr, dbConn))
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
 		writer.Write([]byte("Welcome me dear friend"))
 	})

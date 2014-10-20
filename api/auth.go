@@ -7,16 +7,16 @@
 package api
 
 import (
+	"CaribbeanWarServer/structs"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"time"
 )
 
-type worldStr interface {
-	Add(id uint, nick string, conn *websocket.Conn) error
+type harborStr interface {
+	Add(data *structs.User) error
 }
 
-var world worldStr
+var harbor harborStr
 var db DbConnection
 
 var upgrader = websocket.Upgrader{
@@ -27,8 +27,8 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *http.Request) {
-	world = _world
+func Handler(_harbor harborStr, _db DbConnection) func(w http.ResponseWriter, r *http.Request) {
+	harbor = _harbor
 	db = _db
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}
@@ -37,9 +37,10 @@ func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *h
 		if err := conn.ReadJSON(&data); err == nil {
 			dataMap := data.(map[string]interface{})
 			if dataMap["action"] == "auth" {
-				if added := auth(dataMap["details"], conn); added {
-					go ping(conn)
+				if added := auth(dataMap["details"].(map[string]interface{}), conn); added {
 					return
+				} else {
+					errorMessage["details"] = map[string]string{"message": "User do not added"}
 				}
 			} else {
 				errorMessage["details"] = map[string]string{"message": "User do not logged"}
@@ -52,36 +53,29 @@ func Handler(_world worldStr, _db DbConnection) func(w http.ResponseWriter, r *h
 	}
 }
 
-func auth(data interface{}, conn *websocket.Conn) bool {
-	added := false
-	dataMap := data.(map[string]interface{})
+func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
+	added = false
 	message := map[string]interface{}{"action": "auth"}
-	if info := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); info != nil {
-		if err := world.Add(info["id"].(uint), info["nick"].(string), conn); err != nil {
-			message["details"] = map[string]bool{
-				"inGame": true,
-			}
-		} else {
-			message["details"] = map[string]interface{}{"authorize": true}
-			for key, value := range info {
-				message["details"].(map[string]interface{})[key] = value
+	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
+		info.Conn = conn
+		if err := harbor.Add(info); err == nil {
+			message["details"] = map[string]interface{}{
+				"authorize": true,
+				"userInfo":  info,
 			}
 			added = true
+		} else {
+			message["details"] = map[string]interface{}{
+				"inGame": true,
+				"err":    err.Error(),
+			}
 		}
 	} else {
-		message["details"] = `{
-			"authorize": false
-		}`
-	}
-	conn.WriteJSON(message)
-	return added
-}
-
-func ping(conn *websocket.Conn) {
-	for {
-		time.Sleep(13 * time.Second)
-		if err := conn.WriteMessage(websocket.TextMessage, []byte("{}")); err != nil {
-			return
+		message["details"] = map[string]interface{}{
+			"authorize": false,
+			"details":   err.Error(),
 		}
 	}
+	conn.WriteJSON(message)
+	return
 }
