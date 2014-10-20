@@ -3,12 +3,10 @@ package world
 import (
 	"CaribbeanWarServer/structs"
 	"github.com/dhconnelly/rtreego"
-	"github.com/gorilla/websocket"
 )
 
 type node struct {
 	ID       uint
-	Conn     *websocket.Conn
 	Location *structs.Point
 	bound    *rtreego.Rect
 }
