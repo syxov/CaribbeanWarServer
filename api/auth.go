@@ -33,20 +33,20 @@ func Handler(_harbor harborStr, _db DbConnection) func(w http.ResponseWriter, r 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}
 		conn, _ := upgrader.Upgrade(w, r, nil)
-		errorMessage := map[string]interface{}{"Action": "fuckup"}
+		errorMessage := map[string]interface{}{"action": "fuckup"}
 		if err := conn.ReadJSON(&data); err == nil {
 			dataMap := data.(map[string]interface{})
-			if dataMap["Action"] == "auth" {
-				if added := auth(dataMap["Details"].(map[string]interface{}), conn); added {
+			if dataMap["action"] == "auth" {
+				if added := auth(dataMap["details"].(map[string]interface{}), conn); added {
 					return
 				} else {
-					errorMessage["Details"] = map[string]string{"Message": "User do not added"}
+					errorMessage["details"] = map[string]string{"message": "User do not added"}
 				}
 			} else {
-				errorMessage["Details"] = map[string]string{"Message": "User do not logged"}
+				errorMessage["details"] = map[string]string{"message": "User do not logged"}
 			}
 		} else {
-			errorMessage["Details"] = map[string]string{"Message": err.Error()}
+			errorMessage["details"] = map[string]string{"message": err.Error()}
 		}
 		conn.WriteJSON(errorMessage)
 		conn.Close()
@@ -55,26 +55,25 @@ func Handler(_harbor harborStr, _db DbConnection) func(w http.ResponseWriter, r 
 
 func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
 	added = false
-	message := map[string]interface{}{"Action": "auth"}
-	if info, err := db.GetUserInfo(dataMap["Login"].(string), dataMap["Password"].(string)); err == nil {
+	message := map[string]interface{}{"action": "auth"}
+	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
 		info.Conn = conn
 		if err := harbor.Add(info); err == nil {
-			message["Details"] = map[string]interface{}{
-				"Authorize": true,
-				"UserInfo":  info,
+			message["details"] = map[string]interface{}{
+				"authorize": true,
+				"userInfo":  info,
 			}
 			added = true
 		} else {
-			message["Details"] = map[string]interface{}{
-				"InGame":    true,
-				"Error":     err.Error(),
-				"Authorize": false,
+			message["details"] = map[string]interface{}{
+				"inGame": true,
+				"err":    err.Error(),
 			}
 		}
 	} else {
-		message["Details"] = map[string]interface{}{
-			"Authorize": false,
-			"Details":   err.Error(),
+		message["details"] = map[string]interface{}{
+			"authorize": false,
+			"details":   err.Error(),
 		}
 	}
 	conn.WriteJSON(message)

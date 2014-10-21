@@ -2,10 +2,10 @@ package world
 
 func (self *storage) chat(data map[string]interface{}) {
 	message := map[string]interface{}{
-		"Action": "chat",
-		"Details": map[string]interface{}{
-			"Sender":  data["Sender"],
-			"Message": data["Message"],
+		"action": "chat",
+		"details": map[string]interface{}{
+			"sender":  data["sender"],
+			"message": data["message"],
 		},
 	}
 	self.Lock()

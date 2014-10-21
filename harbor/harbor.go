@@ -69,16 +69,16 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 	var dataI interface{}
 	if err := user.Conn.ReadJSON(&dataI); err == nil {
 		data := dataI.(map[string]interface{})
-		action := data["Action"].(string)
+		action := data["action"].(string)
 		if action == "shipSelect" {
-			id := uint(data["Details"].(map[string]interface{})["ShipId"].(float64))
+			id := uint(data["details"].(map[string]interface{})["shipId"].(float64))
 			for _, value := range user.Ships {
 				if value.ID == id {
 					user.SelectedShip = &value
 					user.Conn.WriteJSON(map[string]interface{}{
-						"Action": "shipSelect",
-						"Details": map[string]bool{
-							"Success": true,
+						"action": "shipSelect",
+						"details": map[string]bool{
+							"success": true,
 						},
 					})
 					world.Add(user)
@@ -97,9 +97,9 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 
 func (self *HarborStruct) sendErrorMessage(conn *websocket.Conn, err error) {
 	conn.WriteJSON(map[string]interface{}{
-		"Action": "fuckup",
-		"Details": map[string]string{
-			"Message": err.Error(),
+		"action": "fuckup",
+		"details": map[string]string{
+			"message": err.Error(),
 		},
 	})
 }
