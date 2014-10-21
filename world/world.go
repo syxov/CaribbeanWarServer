@@ -62,8 +62,8 @@ func (self *storage) message(user *structs.User) {
 	for {
 		if err := user.Conn.ReadJSON(&message); err == nil {
 			json := message.(map[string]interface{})
-			details := json["details"].(map[string]interface{})
-			switch json["action"] {
+			details := json["Details"].(map[string]interface{})
+			switch json["Action"] {
 			case "chat":
 				self.chat(details)
 			}
@@ -73,8 +73,8 @@ func (self *storage) message(user *structs.User) {
 				return
 			} else {
 				user.Conn.WriteJSON(map[string]string{
-					"action":  "fuckup",
-					"details": err.Error(),
+					"Action":  "fuckup",
+					"Details": err.Error(),
 				})
 			}
 		}
