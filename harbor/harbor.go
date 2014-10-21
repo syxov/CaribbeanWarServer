@@ -5,6 +5,7 @@ import (
 	"CaribbeanWarServer/world"
 	"errors"
 	"github.com/gorilla/websocket"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -71,7 +72,14 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 		data := dataI.(map[string]interface{})
 		action := data["action"].(string)
 		if action == "shipSelect" {
-			id := uint(data["details"].(map[string]interface{})["shipId"].(float64))
+			var id uint
+			switch tmp := data["details"].(map[string]interface{})["shipId"].(type) {
+			case string:
+				i64, _ := strconv.ParseUint(tmp, 10, 0)
+				id = uint(i64)
+			case float64:
+				id = uint(tmp)
+			}
 			for _, value := range user.Ships {
 				if value.ID == id {
 					user.SelectedShip = &value
