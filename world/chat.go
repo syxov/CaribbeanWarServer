@@ -1,5 +1,10 @@
 package world
 
+import (
+	"CaribbeanWarServer/rtree"
+	"CaribbeanWarServer/structs"
+)
+
 func (self *storage) chat(data map[string]interface{}) {
 	message := map[string]interface{}{
 		"action": "chat",
@@ -10,7 +15,7 @@ func (self *storage) chat(data map[string]interface{}) {
 	}
 	self.Lock()
 	defer self.Unlock()
-	for _, v := range self.userList {
-		v.Conn.WriteJSON(message)
-	}
+	self.ocean.Each(func(s *rtree.Spatial) {
+		(*s).(*structs.User).Conn.WriteJSON(message)
+	})
 }

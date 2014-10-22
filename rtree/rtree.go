@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // A library for efficiently storing and querying spatial data.
-package rtreego
+package rtree
 
 import (
 	"fmt"
@@ -56,22 +56,11 @@ type node struct {
 	level   int // node depth in the Rtree
 }
 
-func (n *node) String() string {
-	return fmt.Sprintf("node{leaf: %v, entries: %v}", n.leaf, n.entries)
-}
-
 // entry represents a spatial index record stored in a tree node.
 type entry struct {
 	bb    *Rect // bounding-box of all children of this entry
 	child *node
 	obj   Spatial
-}
-
-func (e entry) String() string {
-	if e.child != nil {
-		return fmt.Sprintf("entry{bb: %v, child: %v}", e.bb, e.child)
-	}
-	return fmt.Sprintf("entry{bb: %v, obj: %v}", e.bb, e.obj)
 }
 
 // Any type that implements Spatial can be stored in an Rtree and queried.
@@ -579,4 +568,19 @@ func (tree *Rtree) nearestNeighbors(k int, p Point, n *node, dists []float64, ne
 		}
 	}
 	return nearest, dists
+}
+
+func (tree *Rtree) Each(fn func(*Spatial)) {
+	if tree.root != nil {
+		tree.root.each(fn)
+	}
+}
+
+func (self *node) each(fn func(*Spatial)) {
+	for _, value := range self.entries {
+		fn(&value.obj)
+		if value.child != nil {
+			value.child.each(fn)
+		}
+	}
 }

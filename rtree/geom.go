@@ -2,12 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package rtreego
+package rtree
 
 import (
-	"fmt"
 	"math"
-	"strings"
 )
 
 // DimError represents a failure due to mismatched dimensions.
@@ -150,15 +148,6 @@ func (r *Rect) Equal(other *Rect) bool {
 		}
 	}
 	return true
-}
-
-func (r *Rect) String() string {
-	s := make([]string, len(r.p))
-	for i, a := range r.p {
-		b := r.q[i]
-		s[i] = fmt.Sprintf("[%.2f, %.2f]", a, b)
-	}
-	return strings.Join(s, "x")
 }
 
 // NewRect constructs and returns a pointer to a Rect given a corner point and

@@ -1,45 +1,38 @@
 package world
 
 import (
+	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
 	"errors"
-	"github.com/dhconnelly/rtreego"
 	"sync"
 )
 
 type storage struct {
-	ocean    *rtreego.Rtree
-	userList map[uint]*structs.User
+	ocean *rtree.Rtree
 	sync.Mutex
 }
 
 var world storage
+
+func init() {
+	world.ocean = rtree.NewTree(2, 2, 10)
+}
 
 func Add(user *structs.User) {
 	world.add(user)
 }
 
 func (self *storage) add(user *structs.User) {
-	self.init()
-	self.userList[user.ID] = user
-	self.ocean.Insert(&node{ID: user.ID, Location: &user.Location})
+	self.Lock()
+	defer self.Unlock()
+	self.ocean.Insert(user)
 	go self.message(user)
 }
 
 func (self *storage) remove(user *structs.User) {
 	self.Lock()
 	defer self.Unlock()
-	delete(self.userList, user.ID)
-	self.ocean.Delete(&node{ID: user.ID, Location: &user.Location})
-}
-
-func (self *storage) init() {
-	self.Lock()
-	defer self.Unlock()
-	if self.ocean == nil {
-		self.ocean = rtreego.NewTree(2, 2, 10)
-		self.userList = make(map[uint]*structs.User, 1000)
-	}
+	self.ocean.Delete(user)
 }
 
 func (self *storage) message(user *structs.User) {

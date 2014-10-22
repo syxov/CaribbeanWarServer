@@ -3,10 +3,6 @@
 	"GoVersion": "go1.3.3",
 	"Deps": [
 		{
-			"ImportPath": "github.com/dhconnelly/rtreego",
-			"Rev": "ddfb5d7b877e08f266b663ffc387fb671f615e8d"
-		},
-		{
 			"ImportPath": "github.com/gorilla/websocket",
 			"Rev": "0e7b5f878f841d76632b20fd79f53ca0efd06fae"
 		},
