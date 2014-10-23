@@ -7,16 +7,11 @@
 package api
 
 import (
-	"CaribbeanWarServer/structs"
+	"CaribbeanWarServer/harbor"
 	"github.com/gorilla/websocket"
 	"net/http"
 )
 
-type harborStr interface {
-	Add(data *structs.User) error
-}
-
-var harbor harborStr
 var db DbConnection
 
 var upgrader = websocket.Upgrader{
@@ -27,8 +22,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func Handler(_harbor harborStr, _db DbConnection) func(w http.ResponseWriter, r *http.Request) {
-	harbor = _harbor
+func Handler(_db DbConnection) func(w http.ResponseWriter, r *http.Request) {
 	db = _db
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}

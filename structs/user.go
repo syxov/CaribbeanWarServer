@@ -14,6 +14,9 @@ type User struct {
 	Location     Point
 	Ships        []Ship
 	SelectedShip *Ship
+	NearestUsers []*User
+	Rotation     float64
+	Speed        float64
 }
 
 func (self *User) Bounds() *rtree.Rect {

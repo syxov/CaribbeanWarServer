@@ -2,15 +2,13 @@ package main
 
 import (
 	"CaribbeanWarServer/api"
-	"CaribbeanWarServer/harbor"
 	"net/http"
 	"os"
 	"runtime"
 )
 
 var (
-	dbConn    api.DbConnection
-	harborStr harbor.HarborStruct
+	dbConn api.DbConnection
 )
 
 func init() {
@@ -23,7 +21,7 @@ func init() {
 
 func main() {
 	defer dbConn.Close()
-	http.HandleFunc("/ws", api.Handler(&harborStr, dbConn))
+	http.HandleFunc("/ws", api.Handler(dbConn))
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
 		writer.Write([]byte("Welcome me dear friend"))
 	})

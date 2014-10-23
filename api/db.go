@@ -63,12 +63,11 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		})
 	}
 	return &structs.User{
-		ID:           id,
-		Email:        email,
-		Cash:         cash,
-		Nick:         nick,
-		Location:     structs.Point{float64(location[0]), float64(location[1])},
-		Ships:        ships,
-		SelectedShip: nil,
+		ID:       id,
+		Email:    email,
+		Cash:     cash,
+		Nick:     nick,
+		Location: structs.Point{float64(location[0]), float64(location[1])},
+		Ships:    ships,
 	}, nil
 }

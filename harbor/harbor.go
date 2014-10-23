@@ -15,12 +15,20 @@ type HarborStruct struct {
 	sync.Mutex
 }
 
-func (self *HarborStruct) Add(user *structs.User) error {
+var harbor HarborStruct
+
+func init() {
+	harbor.harbor = make([]structs.User, 0, 30)
+	world.InitHarbor(harbor.add)
+}
+
+func Add(user *structs.User) error {
+	return harbor.add(user)
+}
+
+func (self *HarborStruct) add(user *structs.User) error {
 	self.Lock()
 	defer self.Unlock()
-	if cap(self.harbor) == 0 {
-		self.harbor = make([]structs.User, 0, 30)
-	}
 	if exist := self.exist(user.ID); exist {
 		return errors.New("User exist")
 	}
@@ -60,7 +68,7 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 			case error:
 				message = err.(error).Error()
 			default:
-				message = "Somethign Wrong: Harbor: waitForShip"
+				message = "Something Wrong: Harbor: waitForShip"
 			}
 			self.sendErrorMessage(user.Conn, errors.New(message))
 			user.Conn.Close()
@@ -71,7 +79,7 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 	if err := user.Conn.ReadJSON(&dataI); err == nil {
 		data := dataI.(map[string]interface{})
 		action := data["action"].(string)
-		if action == "shipSelect" {
+		if action == "enterWorld" {
 			var id uint
 			switch tmp := data["details"].(map[string]interface{})["shipId"].(type) {
 			case string:
