@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/websocket"
 	"strconv"
 	"sync"
-	"time"
 )
 
 type HarborStruct struct {
@@ -34,7 +33,6 @@ func (self *HarborStruct) add(user *structs.User) error {
 	}
 	self.harbor = append(self.harbor, *user)
 	go self.waitForShipSelection(user)
-	go ping(user.Conn)
 	return nil
 }
 
@@ -118,13 +116,4 @@ func (self *HarborStruct) sendErrorMessage(conn *websocket.Conn, err error) {
 			"message": err.Error(),
 		},
 	})
-}
-
-func ping(conn *websocket.Conn) {
-	for {
-		time.Sleep(13 * time.Second)
-		if err := conn.WriteMessage(websocket.TextMessage, []byte("{}")); err != nil {
-			return
-		}
-	}
 }

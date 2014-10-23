@@ -10,6 +10,7 @@ import (
 	"CaribbeanWarServer/harbor"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"time"
 )
 
 var db DbConnection
@@ -58,6 +59,7 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
 				"userInfo":  info,
 			}
 			added = true
+			go ping(conn)
 		} else {
 			message["details"] = map[string]interface{}{
 				"inGame": true,
@@ -72,4 +74,13 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
 	}
 	conn.WriteJSON(message)
 	return
+}
+
+func ping(conn *websocket.Conn) {
+	for {
+		time.Sleep(13 * time.Second)
+		if err := conn.WriteMessage(websocket.TextMessage, []byte("{}")); err != nil {
+			return
+		}
+	}
 }
