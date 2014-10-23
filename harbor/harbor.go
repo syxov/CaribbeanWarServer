@@ -92,7 +92,7 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 				if value.ID == id {
 					user.SelectedShip = &value
 					user.Conn.WriteJSON(map[string]interface{}{
-						"action": "shipSelect",
+						"action": "enterWorld",
 						"details": map[string]bool{
 							"success": true,
 						},
