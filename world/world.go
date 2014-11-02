@@ -8,7 +8,7 @@ import (
 
 type storage struct {
 	ocean *rtree.Rtree
-	sync.Mutex
+	sync.RWMutex
 }
 
 var world storage
@@ -27,11 +27,14 @@ func Add(user *structs.User) {
 }
 
 func (self *storage) add(user *structs.User) {
+	user.InWorld = true
 	self.Lock()
 	self.ocean.Insert(user)
 	self.Unlock()
-	go self.findNeigboursRepeater(user)
+	self.findNeigbours(user)
 	go self.message(user)
+	go self.findNeigboursRepeater(user)
+	go self.movement(user)
 }
 
 func (self *storage) remove(user *structs.User) {
@@ -39,6 +42,7 @@ func (self *storage) remove(user *structs.User) {
 	defer self.Unlock()
 	user.NearestUsers = nil
 	user.SelectedShip = nil
+	user.InWorld = false
 	self.ocean.Delete(user)
 	addToHarbor(user)
 }

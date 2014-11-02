@@ -5,6 +5,6 @@ type Ship struct {
 	Name        string
 	Weight      uint16
 	CannonCount byte
-	Speed       uint16
+	Speed       float64
 	HP          uint16
 }

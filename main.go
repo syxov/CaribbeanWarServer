@@ -7,9 +7,7 @@ import (
 	"runtime"
 )
 
-var (
-	dbConn api.DbConnection
-)
+var dbConn api.DbConnection
 
 func init() {
 	dbConn.Open()

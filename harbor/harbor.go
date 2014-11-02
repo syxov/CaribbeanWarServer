@@ -89,13 +89,14 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 			for _, value := range user.Ships {
 				if value.ID == id {
 					user.SelectedShip = &value
+					world.Add(user)
 					user.Conn.WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
-						"details": map[string]bool{
-							"success": true,
+						"details": map[string]interface{}{
+							"success":   true,
+							"neigbours": user.NearestUsers,
 						},
 					})
-					world.Add(user)
 					self.Remove(user.ID)
 					return
 				}

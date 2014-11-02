@@ -22,7 +22,7 @@ func (self *storage) message(user *structs.User) {
 	}()
 
 	var message interface{}
-	for {
+	for user.InWorld {
 		if err := user.Conn.ReadJSON(&message); err == nil {
 			json := message.(map[string]interface{})
 			details := json["details"].(map[string]interface{})
@@ -31,7 +31,9 @@ func (self *storage) message(user *structs.User) {
 				self.remove(user)
 				return
 			case "chat":
-				self.chat(details)
+				self.chat(&message)
+			case "move":
+				self.move(user, details)
 			}
 		} else {
 			if err.Error() == "EOF" {

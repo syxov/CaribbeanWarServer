@@ -30,7 +30,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		name        string
 		weight      uint16
 		cannonCount byte
-		speed       uint16
+		speed       float64
 		hp          uint16
 	)
 	err := self.db.QueryRow(`
@@ -67,7 +67,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		Email:    email,
 		Cash:     cash,
 		Nick:     nick,
-		Location: structs.Point{float64(location[0]), float64(location[1])},
+		Location: &structs.Point{float64(location[0]), float64(location[1])},
 		Ships:    ships,
 	}, nil
 }
