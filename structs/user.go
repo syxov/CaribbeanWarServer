@@ -15,6 +15,13 @@ const (
 	velocity   = float64(1)
 )
 
+type NearestUser struct {
+	ID   uint
+	Conn *websocket.Conn
+	Ship *Ship
+	Nick string
+}
+
 type User struct {
 	ID                uint
 	Email             string
@@ -24,7 +31,7 @@ type User struct {
 	Location          *Point
 	Ships             []Ship
 	SelectedShip      *Ship
-	NearestUsers      []*User
+	NearestUsers      []NearestUser
 	InWorld           bool
 	targetSpeedRatio  float64
 	speedRatio        float64

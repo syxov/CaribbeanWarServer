@@ -28,6 +28,7 @@ func Handler(_db DbConnection) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}
 		conn, _ := upgrader.Upgrade(w, r, nil)
+		go ping(conn)
 		errorMessage := map[string]interface{}{"action": "fuckup"}
 		if err := conn.ReadJSON(&data); err == nil {
 			dataMap := data.(map[string]interface{})
@@ -59,7 +60,6 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
 				"userInfo":  info,
 			}
 			added = true
-			go ping(conn)
 		} else {
 			message["details"] = map[string]interface{}{
 				"inGame": true,

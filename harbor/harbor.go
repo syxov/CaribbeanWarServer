@@ -39,8 +39,8 @@ func (self *HarborStruct) add(user *structs.User) error {
 func (self *HarborStruct) Remove(id uint) {
 	if index, err := self.indexOf(id); err == nil {
 		self.Lock()
-		defer self.Unlock()
 		self.harbor = append(self.harbor[:index], self.harbor[index+1:]...)
+		self.Unlock()
 	}
 }
 
@@ -62,9 +62,9 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 	defer func() {
 		if err := recover(); err != nil {
 			var message string
-			switch err.(type) {
+			switch tmp := err.(type) {
 			case error:
-				message = err.(error).Error()
+				message = tmp.Error()
 			default:
 				message = "Something Wrong: Harbor: waitForShip"
 			}
@@ -93,8 +93,8 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 					user.Conn.WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
 						"details": map[string]interface{}{
-							"success":   true,
-							"neigbours": user.NearestUsers,
+							"success": true,
+							//"neigbours": user.NearestUsers,
 						},
 					})
 					self.Remove(user.ID)

@@ -13,12 +13,18 @@ func (self *storage) findNeigbours(user *structs.User) {
 	self.Lock()
 	defer self.Unlock()
 	spatials := self.ocean.SearchIntersect(rect)
-	user.NearestUsers = make([]*structs.User, 0, len(spatials))
+	user.NearestUsers = make([]structs.NearestUser, 0, len(spatials))
 	for _, value := range spatials {
-		user.NearestUsers = append(user.NearestUsers, value.(*structs.User))
+		converterValue := value.(*structs.User)
+		user.NearestUsers = append(user.NearestUsers, structs.NearestUser{
+			ID:   converterValue.ID,
+			Nick: converterValue.Nick,
+			Conn: converterValue.Conn,
+			Ship: converterValue.SelectedShip,
+		})
 	}
 	user.Conn.WriteJSON(map[string]interface{}{
-		"action": "nearestUsers",
+		"action": "neigbours",
 		"details": map[string]interface{}{
 			"users": user.NearestUsers,
 		},
