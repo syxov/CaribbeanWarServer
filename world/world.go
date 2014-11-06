@@ -8,7 +8,7 @@ import (
 
 type storage struct {
 	ocean *rtree.Rtree
-	sync.RWMutex
+	sync.Mutex
 }
 
 var world storage
