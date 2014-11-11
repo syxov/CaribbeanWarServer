@@ -2,9 +2,10 @@ package structs
 
 import (
 	"CaribbeanWarServer/rtree"
-	"github.com/gorilla/websocket"
 	"math"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -37,7 +38,7 @@ type User struct {
 	speedRatio        float64
 	rotationAngle     float64
 	rotationDirection byte
-	sync.RWMutex
+	sync.Mutex
 }
 
 func (self *User) Bounds() *rtree.Rect {
