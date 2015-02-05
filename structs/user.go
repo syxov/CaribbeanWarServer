@@ -4,7 +4,6 @@ import (
 	"CaribbeanWarServer/rtree"
 	"math"
 	"sync"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -12,8 +11,8 @@ const (
 	left = iota
 	right
 	none
-	angleSpeed = 10
-	velocity   = float64(1)
+	angleSpeed         = 10
+	velocity   float64 = 1
 )
 
 type NearestUser struct {
@@ -47,7 +46,6 @@ func (self *User) Bounds() *rtree.Rect {
 }
 
 func (self *User) SetMove(moveType string) {
-	self.Lock()
 	switch moveType {
 	case "upward":
 		self.targetSpeedRatio = math.Min(self.targetSpeedRatio+1/3, 1)
@@ -65,21 +63,20 @@ func (self *User) SetMove(moveType string) {
 			"details": "unrecognized command to move" + moveType,
 		})
 	}
-	self.Unlock()
 }
 
-func (self *User) UpdatePosition(realDelta float64) {
+func (self *User) UpdatePosition(delta float64) {
 	self.Lock()
 	if self.rotationDirection != none {
 		if self.rotationDirection == right {
-			self.rotationAngle = math.Mod(self.rotationAngle+angleSpeed*realDelta, math.Pi)
+			self.rotationAngle = math.Mod(self.rotationAngle+angleSpeed*delta, math.Pi)
 		} else {
-			self.rotationAngle = math.Mod(self.rotationAngle-angleSpeed*realDelta, math.Pi)
+			self.rotationAngle = math.Mod(self.rotationAngle-angleSpeed*delta, math.Pi)
 		}
 	}
-	self.Location.X += (self.SelectedShip.Speed * self.speedRatio * realDelta) * math.Cos(self.rotationAngle)
-	self.Location.Y += (self.SelectedShip.Speed * self.speedRatio * realDelta) * math.Sin(self.rotationAngle)
-	self.speedRatio = lerp(self.speedRatio, self.targetSpeedRatio, 0.01*realDelta)
+	self.speedRatio = lerp(self.speedRatio, self.targetSpeedRatio, delta)
+	self.Location.X += (self.SelectedShip.Speed * self.speedRatio * delta) * math.Cos(self.rotationAngle)
+	self.Location.Y += (self.SelectedShip.Speed * self.speedRatio * delta) * math.Sin(self.rotationAngle)
 	self.Unlock()
 }
 

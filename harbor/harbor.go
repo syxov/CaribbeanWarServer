@@ -37,10 +37,10 @@ func (self *HarborStruct) add(user *structs.User) error {
 }
 
 func (self *HarborStruct) Remove(id uint) {
+	self.Lock()
+	defer self.Unlock()
 	if index, err := self.indexOf(id); err == nil {
-		self.Lock()
 		self.harbor = append(self.harbor[:index], self.harbor[index+1:]...)
-		self.Unlock()
 	}
 }
 
@@ -73,13 +73,12 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 			self.Remove(user.ID)
 		}
 	}()
-	var dataI interface{}
+	var dataI map[string]interface{}
 	if err := user.Conn.ReadJSON(&dataI); err == nil {
-		data := dataI.(map[string]interface{})
-		action := data["action"].(string)
+		action := dataI["action"].(string)
 		if action == "enterWorld" {
 			var id uint
-			switch tmp := data["details"].(map[string]interface{})["shipId"].(type) {
+			switch tmp := dataI["details"].(map[string]interface{})["shipId"].(type) {
 			case string:
 				i64, _ := strconv.ParseUint(tmp, 10, 0)
 				id = uint(i64)

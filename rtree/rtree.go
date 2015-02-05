@@ -39,10 +39,6 @@ func (tree *Rtree) Size() int {
 	return tree.size
 }
 
-func (tree *Rtree) String() string {
-	return "foo"
-}
-
 // Depth returns the maximum depth of tree.
 func (tree *Rtree) Depth() int {
 	return tree.height
@@ -166,14 +162,12 @@ func (tree *Rtree) adjustTree(n, nn *node) (*node, *node) {
 
 // getEntry returns a pointer to the entry for the node n from n's parent.
 func (n *node) getEntry() *entry {
-	var e *entry
-	for i := range n.parent.entries {
-		if n.parent.entries[i].child == n {
-			e = &n.parent.entries[i]
-			break
+	for _, value := range n.parent.entries {
+		if value.child == n {
+			return &value
 		}
 	}
-	return e
+	return nil
 }
 
 // computeBoundingBox finds the MBR of the children of n.

@@ -1,7 +1,7 @@
 /*
 	layer between new users and game world
-	in case successful log in push user to world
-	else send a error responces
+	in case of successful login push user to world
+	else send a error responce
 */
 
 package api
@@ -49,8 +49,8 @@ func Handler(_db DbConnection) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
-	added = false
+func auth(dataMap map[string]interface{}, conn *websocket.Conn) bool {
+	added := false
 	message := map[string]interface{}{"action": "auth"}
 	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
 		info.Conn = conn
@@ -73,7 +73,7 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) (added bool) {
 		}
 	}
 	conn.WriteJSON(message)
-	return
+	return added
 }
 
 func ping(conn *websocket.Conn) {

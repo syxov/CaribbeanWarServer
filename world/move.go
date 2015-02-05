@@ -7,35 +7,29 @@ import (
 
 func (self *storage) move(user *structs.User, data map[string]interface{}) {
 	moveType := data["type"].(string)
-	self.Lock()
-	user.SetMove(moveType)
-	self.Unlock()
+	sendData := map[string]interface{}{
+		"action": "move",
+		"details": map[string]interface{}{
+			"id":   user.ID,
+			"type": moveType,
+		},
+	}
 	user.Lock()
-	for _, value := range user.NearestUsers {
-		value.Conn.WriteJSON(map[string]interface{}{
-			"action": "move",
-			"details": map[string]interface{}{
-				"id":   user.ID,
-				"type": moveType,
-			},
-		})
+	user.SetMove(moveType)
+	for _, neigbour := range user.NearestUsers {
+		neigbour.Conn.WriteJSON(sendData)
 	}
 	user.Unlock()
 }
 
 func (self *storage) movement(user *structs.User) {
-	defer func() {
-		if recover() != nil {
-			self.Unlock()
-		}
-	}()
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
 	for user.InWorld {
-		time := <-ticker.C
+		tick := <-ticker.C
 		self.Lock()
 		self.ocean.Delete(user)
-		user.UpdatePosition(float64(time.Nanosecond() / 1000))
+		user.UpdatePosition(float64(tick.Nanosecond() / int(time.Second)))
 		self.ocean.Insert(user)
 		self.Unlock()
 	}
