@@ -15,15 +15,15 @@ func (self *storage) message(user *structs.User) {
 			default:
 				message = "Something wrong"
 			}
-			user.Conn.WriteJSON(errors.New(message))
-			user.Conn.Close()
+			user.GetConn().WriteJSON(errors.New(message))
+			user.GetConn().Close()
 			self.remove(user)
 		}
 	}()
 
 	var json map[string]interface{}
-	for user.InWorld {
-		if err := user.Conn.ReadJSON(&json); err == nil {
+	for user.IsInWorld() {
+		if err := user.GetConn().ReadJSON(&json); err == nil {
 			details := json["details"].(map[string]interface{})
 			switch json["action"] {
 			case "exitWorld":
@@ -39,7 +39,7 @@ func (self *storage) message(user *structs.User) {
 				self.remove(user)
 				return
 			} else {
-				user.Conn.WriteJSON(map[string]string{
+				user.GetConn().WriteJSON(map[string]string{
 					"action":  "fuckup",
 					"details": err.Error(),
 				})

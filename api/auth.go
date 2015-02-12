@@ -53,7 +53,7 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) bool {
 	added := false
 	message := map[string]interface{}{"action": "auth"}
 	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
-		info.Conn = conn
+		info.SetConn(conn)
 		if err := harbor.Add(info); err == nil {
 			message["details"] = map[string]interface{}{
 				"authorize": true,

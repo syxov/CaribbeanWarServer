@@ -27,7 +27,7 @@ func Add(user *structs.User) {
 }
 
 func (self *storage) add(user *structs.User) {
-	user.InWorld = true
+	user.SetIsInWorld(true)
 	self.Lock()
 	self.ocean.Insert(user)
 	self.Unlock()
@@ -42,7 +42,7 @@ func (self *storage) remove(user *structs.User) {
 	defer self.Unlock()
 	user.NearestUsers = nil
 	user.SelectedShip = nil
-	user.InWorld = false
+	user.SetIsInWorld(false)
 	self.ocean.Delete(user)
 	addToHarbor(user)
 }

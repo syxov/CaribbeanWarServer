@@ -19,15 +19,14 @@ func (self *storage) findNeigbours(user *structs.User) {
 		if converterValue.ID != user.ID {
 			nearestUsers = append(nearestUsers, structs.NearestUser{
 				ID:   converterValue.ID,
-				Nick: converterValue.Nick,
-				Conn: converterValue.Conn,
+				Conn: converterValue.GetConn(),
 				Ship: converterValue.SelectedShip,
 			})
 		}
 	}
 	if listChanged(nearestUsers, user.NearestUsers) {
 		user.NearestUsers = nearestUsers
-		user.Conn.WriteJSON(map[string]interface{}{
+		user.GetConn().WriteJSON(map[string]interface{}{
 			"action": "neigbours",
 			"details": map[string]interface{}{
 				"users": user.NearestUsers,
@@ -37,7 +36,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 }
 
 func (self *storage) findNeigboursRepeater(user *structs.User) {
-	for user.InWorld {
+	for user.IsInWorld() {
 		self.findNeigbours(user)
 		time.Sleep(time.Second)
 	}

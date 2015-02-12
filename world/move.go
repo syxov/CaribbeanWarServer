@@ -25,7 +25,7 @@ func (self *storage) move(user *structs.User, data map[string]interface{}) {
 func (self *storage) movement(user *structs.User) {
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
-	for user.InWorld {
+	for user.IsInWorld() {
 		tick := <-ticker.C
 		self.Lock()
 		self.ocean.Delete(user)

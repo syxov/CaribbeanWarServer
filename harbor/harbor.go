@@ -68,13 +68,13 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 			default:
 				message = "Something Wrong: Harbor: waitForShip"
 			}
-			self.sendErrorMessage(user.Conn, errors.New(message))
-			user.Conn.Close()
+			self.sendErrorMessage(user.GetConn(), errors.New(message))
+			user.GetConn().Close()
 			self.Remove(user.ID)
 		}
 	}()
 	var dataI map[string]interface{}
-	if err := user.Conn.ReadJSON(&dataI); err == nil {
+	if err := user.GetConn().ReadJSON(&dataI); err == nil {
 		action := dataI["action"].(string)
 		if action == "enterWorld" {
 			var id uint
@@ -89,7 +89,7 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 				if value.ID == id {
 					user.SelectedShip = &value
 					world.Add(user)
-					user.Conn.WriteJSON(map[string]interface{}{
+					user.GetConn().WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
 						"details": map[string]interface{}{
 							"success": true,
