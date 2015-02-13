@@ -19,6 +19,7 @@ func (self *storage) move(user *structs.User, data map[string]interface{}) {
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(sendData)
 	}
+	user.GetConn().WriteJSON(sendData)
 	user.Unlock()
 }
 
