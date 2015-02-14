@@ -62,8 +62,8 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) bool {
 			added = true
 		} else {
 			message["details"] = map[string]interface{}{
-				"inGame": true,
-				"err":    err.Error(),
+				"authorize": false,
+				"inGame":    true,
 			}
 		}
 	} else {

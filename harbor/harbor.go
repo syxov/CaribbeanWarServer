@@ -92,8 +92,10 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 					user.GetConn().WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
 						"details": map[string]interface{}{
-							"success": true,
-							//"neigbours": user.NearestUsers,
+							"success":      true,
+							"nearestUsers": user.NearestUsers,
+							"shipInfo":     user.SelectedShip,
+							"location":     user.Location,
 						},
 					})
 					self.Remove(user.ID)

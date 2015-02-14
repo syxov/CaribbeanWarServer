@@ -16,9 +16,10 @@ const (
 )
 
 type NearestUser struct {
-	ID   uint            `json:"id"`
-	Conn *websocket.Conn `json:`
-	Ship *Ship           `json:`
+	ID   *uint           `json:"id"`
+	Conn *websocket.Conn `json:""`
+	Ship *Ship           `json:"ship"`
+	Nick *string         `json:"nick"`
 }
 
 type User struct {
