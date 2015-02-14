@@ -33,7 +33,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 	user.NearestUsers = nearestUsers
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.GetConn().WriteJSON(map[string]interface{}{
-			"action": "nieghbours",
+			"action": "neighbours",
 			"details": map[string][]structs.NearestUser{
 				"added":   addedGamers,
 				"removed": removedGamers,
