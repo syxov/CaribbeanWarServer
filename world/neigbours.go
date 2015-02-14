@@ -3,7 +3,6 @@ package world
 import (
 	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
-	"sync"
 	"time"
 )
 
@@ -29,14 +28,8 @@ func (self *storage) findNeigbours(user *structs.User) {
 			})
 		}
 	}
-	group := &sync.WaitGroup{}
-	group.Add(2)
-	var (
-		addedGamers, removedGamers []structs.NearestUser
-	)
-	go getAddedGamers(&user.NearestUsers, &nearestUsers, &addedGamers, group)
-	go getRemovedGamers(&user.NearestUsers, &nearestUsers, &removedGamers, group)
-	group.Wait()
+	addedGamers := getAddedGamers(&user.NearestUsers, &nearestUsers)
+	removedGamers := getRemovedGamers(&user.NearestUsers, &nearestUsers)
 	user.NearestUsers = nearestUsers
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.GetConn().WriteJSON(map[string]interface{}{
@@ -56,7 +49,7 @@ func (self *storage) findNeigboursRepeater(user *structs.User) {
 	}
 }
 
-func getAddedGamers(p_oldNearestUsers, p_newNearestUsers, newGamers *[]structs.NearestUser, waitGroup *sync.WaitGroup) {
+func getAddedGamers(p_oldNearestUsers, p_newNearestUsers *[]structs.NearestUser) []structs.NearestUser {
 	oldNearestUsers := *p_oldNearestUsers
 	newNearestUsers := *p_newNearestUsers
 	newGamersSlice := make([]structs.NearestUser, 0, 2)
@@ -72,11 +65,10 @@ func getAddedGamers(p_oldNearestUsers, p_newNearestUsers, newGamers *[]structs.N
 			newGamersSlice = append(newGamersSlice, nearestUser)
 		}
 	}
-	newGamers = &newGamersSlice
-	waitGroup.Done()
+	return newGamersSlice
 }
 
-func getRemovedGamers(p_oldNearestUsers, p_newNearestUsers, removedGamers *[]structs.NearestUser, waitGroup *sync.WaitGroup) {
+func getRemovedGamers(p_oldNearestUsers, p_newNearestUsers *[]structs.NearestUser) []structs.NearestUser {
 	oldNearestUsers := *p_oldNearestUsers
 	newNearestUsers := *p_newNearestUsers
 	removedGamersSlice := make([]structs.NearestUser, 0, 2)
@@ -92,6 +84,5 @@ func getRemovedGamers(p_oldNearestUsers, p_newNearestUsers, removedGamers *[]str
 			removedGamersSlice = append(removedGamersSlice, nearestUser)
 		}
 	}
-	removedGamers = &removedGamersSlice
-	waitGroup.Done()
+	return removedGamersSlice
 }
