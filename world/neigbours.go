@@ -11,9 +11,12 @@ const radius = 100
 
 func (self *storage) findNeigbours(user *structs.User) {
 	rect, _ := rtree.NewRect(rtree.Point{user.Location.X, user.Location.Y}, []float64{radius, radius})
+	if user.NearestUsers == nil {
+		user.NearestUsers = make([]structs.NearestUser, 0, 20)
+	}
 	self.Lock()
-	defer self.Unlock()
 	spatials := self.ocean.SearchIntersect(rect)
+	self.Unlock()
 	nearestUsers := make([]structs.NearestUser, 0, len(spatials))
 	for _, value := range spatials {
 		convertedValue := value.(*structs.User)
@@ -29,15 +32,16 @@ func (self *storage) findNeigbours(user *structs.User) {
 	group := &sync.WaitGroup{}
 	group.Add(2)
 	var (
-		addedGamers, removedGamers *[]structs.NearestUser
+		addedGamers, removedGamers []structs.NearestUser
 	)
-	go getAddedGamers(&user.NearestUsers, &nearestUsers, addedGamers, group)
-	go getRemovedGamers(&user.NearestUsers, &nearestUsers, removedGamers, group)
+	go getAddedGamers(&user.NearestUsers, &nearestUsers, &addedGamers, group)
+	go getRemovedGamers(&user.NearestUsers, &nearestUsers, &removedGamers, group)
 	group.Wait()
-	if len(*addedGamers) != 0 || len(*removedGamers) != 0 {
+	user.NearestUsers = nearestUsers
+	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.GetConn().WriteJSON(map[string]interface{}{
 			"action": "nieghbours",
-			"details": map[string]*[]structs.NearestUser{
+			"details": map[string][]structs.NearestUser{
 				"added":   addedGamers,
 				"removed": removedGamers,
 			},
