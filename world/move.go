@@ -21,8 +21,8 @@ func (self *storage) move(user *structs.User, data map[string]interface{}) {
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(sendData)
 	}
-	user.GetConn().WriteJSON(sendData)
 	user.Unlock()
+	user.GetConn().WriteJSON(sendData)
 }
 
 func (self *storage) movement(user *structs.User) {
@@ -31,11 +31,13 @@ func (self *storage) movement(user *structs.User) {
 	for user.IsInWorld() {
 		tick := <-ticker.C
 		self.Lock()
-		self.ocean.Delete(user)
-		user.Lock()
-		user.UpdatePosition(float64(tick.Nanosecond() / int(time.Second)))
-		user.Unlock()
-		self.ocean.Insert(user)
+		isDeleted := self.ocean.Delete(user)
+		if isDeleted {
+			user.Lock()
+			user.UpdatePosition(float64(tick.Nanosecond() / int(time.Second)))
+			user.Unlock()
+			self.ocean.Insert(user)
+		}
 		self.Unlock()
 	}
 }
