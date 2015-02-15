@@ -17,7 +17,7 @@ func (self *storage) message(user *structs.User) {
 			}
 			user.GetConn().WriteJSON(errors.New(message))
 			user.GetConn().Close()
-			self.remove(user)
+			self.remove(user, false)
 		}
 	}()
 
@@ -27,7 +27,7 @@ func (self *storage) message(user *structs.User) {
 			details := json["details"].(map[string]interface{})
 			switch json["action"] {
 			case "exitWorld":
-				self.remove(user)
+				self.remove(user, true)
 				return
 			case "chat":
 				self.chat(&json)
@@ -36,7 +36,7 @@ func (self *storage) message(user *structs.User) {
 			}
 		} else {
 			if err.Error() == "EOF" {
-				self.remove(user)
+				self.remove(user, false)
 				return
 			} else {
 				user.GetConn().WriteJSON(map[string]string{

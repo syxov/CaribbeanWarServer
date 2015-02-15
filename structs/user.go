@@ -74,8 +74,11 @@ func (self *User) UpdatePosition(delta float64) {
 		}
 	}
 	self.speedRatio = lerp(self.speedRatio, self.targetSpeedRatio, delta)
-	self.Location.X += (self.SelectedShip.Speed * self.speedRatio * delta) * math.Cos(self.rotationAngle)
-	self.Location.Y += (self.SelectedShip.Speed * self.speedRatio * delta) * math.Sin(self.rotationAngle)
+	ship := self.SelectedShip
+	if ship != nil {
+		self.Location.X += (ship.Speed * self.speedRatio * delta) * math.Cos(self.rotationAngle)
+		self.Location.Y += (ship.Speed * self.speedRatio * delta) * math.Sin(self.rotationAngle)
+	}
 }
 
 func lerp(start, end, delta float64) float64 {

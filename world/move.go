@@ -30,7 +30,9 @@ func (self *storage) movement(user *structs.User) {
 		tick := <-ticker.C
 		self.Lock()
 		self.ocean.Delete(user)
+		user.Lock()
 		user.UpdatePosition(float64(tick.Nanosecond() / int(time.Second)))
+		user.Unlock()
 		self.ocean.Insert(user)
 		self.Unlock()
 	}

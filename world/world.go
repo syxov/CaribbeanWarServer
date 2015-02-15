@@ -35,14 +35,19 @@ func (self *storage) add(user *structs.User) {
 	go self.message(user)
 	go self.findNeigboursRepeater(user)
 	go self.movement(user)
+
 }
 
-func (self *storage) remove(user *structs.User) {
+func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	self.Lock()
+	user.Lock()
+	defer user.Unlock()
 	defer self.Unlock()
 	user.NearestUsers = nil
 	user.SelectedShip = nil
 	user.SetIsInWorld(false)
 	self.ocean.Delete(user)
-	addToHarbor(user)
+	if needAddToHarbor {
+		addToHarbor(user)
+	}
 }
