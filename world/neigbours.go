@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const radius = 100
+const radius = 100000
 
 func (self *storage) findNeigbours(user *structs.User) {
 	rect, _ := rtree.NewRect(rtree.Point{user.Location.X, user.Location.Y}, []float64{radius, radius})
