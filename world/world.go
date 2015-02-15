@@ -1,6 +1,7 @@
 package world
 
 import (
+	"CaribbeanWarServer/api"
 	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
 	"sync"
@@ -8,6 +9,7 @@ import (
 
 type storage struct {
 	ocean *rtree.Rtree
+	db    api.DbConnection
 	sync.Mutex
 }
 
@@ -16,6 +18,8 @@ var addToHarbor func(*structs.User) error
 
 func init() {
 	world.ocean = rtree.NewTree(2, 2, 50)
+	world.db = api.DbConnection{}
+	world.db.Open()
 }
 
 func InitHarbor(add func(*structs.User) error) {
@@ -47,6 +51,7 @@ func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	user.SelectedShip = nil
 	user.SetIsInWorld(false)
 	self.ocean.Delete(user)
+	self.db.SaveUserLocation(user)
 	if needAddToHarbor {
 		addToHarbor(user)
 	}

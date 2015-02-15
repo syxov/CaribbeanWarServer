@@ -2,6 +2,9 @@ package main
 
 import (
 	"CaribbeanWarServer/api"
+	"CaribbeanWarServer/auth"
+	"CaribbeanWarServer/harbor"
+	//	"CaribbeanWarServer/world"
 	"net/http"
 	"os"
 	"runtime"
@@ -20,7 +23,7 @@ func init() {
 
 func main() {
 	defer dbConn.Close()
-	http.HandleFunc("/ws", api.Handler(dbConn))
+	http.HandleFunc("/ws", auth.Handler(&dbConn, harbor.GetHarbor()))
 	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
 		writer.Write([]byte("Welcome me dear friend"))
 	})

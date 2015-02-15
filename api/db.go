@@ -25,6 +25,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		id       uint
 		cash     uint
 		nick     string
+		rotation float64
 		location []uint8
 
 		name        string
@@ -34,9 +35,9 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		hp          uint16
 	)
 	err := self.db.QueryRow(`
-		SELECT id, cash, nick, location FROM users 
+		SELECT id, cash, nick, location, rotation FROM users 
 		WHERE email=$1 AND password=$2
-	`, email, password).Scan(&id, &cash, &nick, &location)
+	`, email, password).Scan(&id, &cash, &nick, &location, &rotation)
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +64,21 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		})
 	}
 	return &structs.User{
-		ID:       id,
-		Email:    email,
-		Cash:     cash,
-		Nick:     nick,
-		Location: &structs.Point{float64(location[0]), float64(location[1])},
-		Ships:    ships,
+		ID:            id,
+		Email:         email,
+		Cash:          cash,
+		Nick:          nick,
+		Location:      &structs.Point{float64(location[0]), float64(location[1])},
+		Ships:         ships,
+		RotationAngle: rotation,
 	}, nil
+}
+
+func (self *DbConnection) SaveUserLocation(user *structs.User) error {
+	_, err := self.db.Query(`
+		UPDATE users
+		SET location=$1, rotation=$2
+		WHERE id=$3
+	`, user.Location, user.RotationAngle, user.ID)
+	return err
 }

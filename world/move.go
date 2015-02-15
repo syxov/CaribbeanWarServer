@@ -10,8 +10,10 @@ func (self *storage) move(user *structs.User, data map[string]interface{}) {
 	sendData := map[string]interface{}{
 		"action": "move",
 		"details": map[string]interface{}{
-			"id":   user.ID,
-			"type": moveType,
+			"id":       user.ID,
+			"type":     moveType,
+			"location": user.Location,
+			"alpha":    user.RotationAngle,
 		},
 	}
 	user.Lock()

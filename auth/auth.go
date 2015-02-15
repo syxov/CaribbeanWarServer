@@ -4,16 +4,25 @@
 	else send a error responce
 */
 
-package api
+package auth
 
 import (
-	"CaribbeanWarServer/harbor"
+	"CaribbeanWarServer/structs"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
 )
 
+type DbConnection interface {
+	GetUserInfo(string, string) (*structs.User, error)
+}
+
+type Harbor interface {
+	Add(*structs.User) error
+}
+
 var db DbConnection
+var harbor Harbor
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -23,8 +32,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func Handler(_db DbConnection) func(w http.ResponseWriter, r *http.Request) {
+func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *http.Request) {
 	db = _db
+	harbor = _harbor
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}
 		conn, _ := upgrader.Upgrade(w, r, nil)

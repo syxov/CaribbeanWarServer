@@ -9,23 +9,24 @@ import (
 	"sync"
 )
 
-type HarborStruct struct {
+type harborStruct struct {
 	harbor []structs.User
 	sync.Mutex
 }
 
-var harbor HarborStruct
+var harbor *harborStruct
 
 func init() {
+	harbor = &harborStruct{}
 	harbor.harbor = make([]structs.User, 0, 30)
-	world.InitHarbor(harbor.add)
+	world.InitHarbor(harbor.Add)
 }
 
-func Add(user *structs.User) error {
-	return harbor.add(user)
+func GetHarbor() *harborStruct {
+	return harbor
 }
 
-func (self *HarborStruct) add(user *structs.User) error {
+func (self *harborStruct) Add(user *structs.User) error {
 	self.Lock()
 	defer self.Unlock()
 	if exist := self.exist(user.ID); exist {
@@ -36,7 +37,7 @@ func (self *HarborStruct) add(user *structs.User) error {
 	return nil
 }
 
-func (self *HarborStruct) Remove(id uint) {
+func (self *harborStruct) Remove(id uint) {
 	self.Lock()
 	defer self.Unlock()
 	if index, err := self.indexOf(id); err == nil {
@@ -44,12 +45,12 @@ func (self *HarborStruct) Remove(id uint) {
 	}
 }
 
-func (self *HarborStruct) exist(id uint) bool {
+func (self *harborStruct) exist(id uint) bool {
 	_, err := self.indexOf(id)
 	return err == nil
 }
 
-func (self *HarborStruct) indexOf(id uint) (int, error) {
+func (self *harborStruct) indexOf(id uint) (int, error) {
 	for key, value := range self.harbor {
 		if value.ID == id {
 			return key, nil
@@ -58,7 +59,7 @@ func (self *HarborStruct) indexOf(id uint) (int, error) {
 	return 0, errors.New("Not found")
 }
 
-func (self *HarborStruct) waitForShipSelection(user *structs.User) {
+func (self *harborStruct) waitForShipSelection(user *structs.User) {
 	defer func() {
 		if err := recover(); err != nil {
 			var message string
@@ -111,7 +112,7 @@ func (self *HarborStruct) waitForShipSelection(user *structs.User) {
 	}
 }
 
-func (self *HarborStruct) sendErrorMessage(conn *websocket.Conn, err error) {
+func (self *harborStruct) sendErrorMessage(conn *websocket.Conn, err error) {
 	conn.WriteJSON(map[string]interface{}{
 		"action": "fuckup",
 		"details": map[string]string{

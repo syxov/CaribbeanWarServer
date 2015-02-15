@@ -21,10 +21,12 @@ func (self *storage) findNeigbours(user *structs.User) {
 		convertedValue := value.(*structs.User)
 		if convertedValue.ID != user.ID {
 			nearestUsers = append(nearestUsers, structs.NearestUser{
-				ID:   &convertedValue.ID,
-				Conn: convertedValue.GetConn(),
-				Ship: convertedValue.SelectedShip,
-				Nick: &convertedValue.Nick,
+				ID:            &convertedValue.ID,
+				Conn:          convertedValue.GetConn(),
+				Ship:          convertedValue.SelectedShip,
+				Nick:          &convertedValue.Nick,
+				Location:      convertedValue.Location,
+				RotationAngle: convertedValue.RotationAngle,
 			})
 		}
 	}
@@ -72,16 +74,16 @@ func getRemovedGamers(p_oldNearestUsers, p_newNearestUsers *[]structs.NearestUse
 	oldNearestUsers := *p_oldNearestUsers
 	newNearestUsers := *p_newNearestUsers
 	removedGamersSlice := make([]structs.NearestUser, 0, 2)
-	for _, nearestUser := range oldNearestUsers {
+	for _, oldNearestUser := range oldNearestUsers {
 		isShouldBeRemoved := true
-		for _, oldNearestUser := range newNearestUsers {
-			if nearestUser.ID == oldNearestUser.ID {
+		for _, newNearestUser := range newNearestUsers {
+			if oldNearestUser.ID == newNearestUser.ID {
 				isShouldBeRemoved = false
 				break
 			}
 		}
 		if isShouldBeRemoved {
-			removedGamersSlice = append(removedGamersSlice, nearestUser)
+			removedGamersSlice = append(removedGamersSlice, oldNearestUser)
 		}
 	}
 	return removedGamersSlice

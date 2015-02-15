@@ -16,26 +16,28 @@ const (
 )
 
 type NearestUser struct {
-	ID   *uint           `json:"id"`
-	Conn *websocket.Conn `json:""`
-	Ship *Ship           `json:"ship"`
-	Nick *string         `json:"nick"`
+	ID            *uint           `json:"id"`
+	Conn          *websocket.Conn `json:""`
+	Ship          *Ship           `json:"ship"`
+	Nick          *string         `json:"nick"`
+	Location      *Point          `json:"location"`
+	RotationAngle float64         `json:"alpha"`
 }
 
 type User struct {
-	ID                uint   `json:"id"`
-	Email             string `json:"email"`
-	Nick              string `json:"nick"`
-	Cash              uint   `json:"cash"`
-	conn              *websocket.Conn
+	ID                uint          `json:"id"`
+	Email             string        `json:"email"`
+	Nick              string        `json:"nick"`
+	Cash              uint          `json:"cash"`
 	Location          *Point        `json:"location"`
 	Ships             []Ship        `json:"ships"`
 	SelectedShip      *Ship         `json:"selectedShip"`
 	NearestUsers      []NearestUser `json:"nearestUsers"`
+	RotationAngle     float64       `json:"alpha"`
+	conn              *websocket.Conn
 	inWorld           bool
 	targetSpeedRatio  float64
 	speedRatio        float64
-	rotationAngle     float64
 	rotationDirection byte
 	sync.Mutex
 }
@@ -68,16 +70,16 @@ func (self *User) SetMove(moveType string) {
 func (self *User) UpdatePosition(delta float64) {
 	if self.rotationDirection != none {
 		if self.rotationDirection == right {
-			self.rotationAngle = math.Mod(self.rotationAngle+angleSpeed*delta, math.Pi)
+			self.RotationAngle = math.Mod(self.RotationAngle+angleSpeed*delta, math.Pi)
 		} else {
-			self.rotationAngle = math.Mod(self.rotationAngle-angleSpeed*delta, math.Pi)
+			self.RotationAngle = math.Mod(self.RotationAngle-angleSpeed*delta, math.Pi)
 		}
 	}
 	self.speedRatio = lerp(self.speedRatio, self.targetSpeedRatio, delta)
 	ship := self.SelectedShip
 	if ship != nil {
-		self.Location.X += (ship.Speed * self.speedRatio * delta) * math.Cos(self.rotationAngle)
-		self.Location.Y += (ship.Speed * self.speedRatio * delta) * math.Sin(self.rotationAngle)
+		self.Location.X += (ship.Speed * self.speedRatio * delta) * math.Cos(self.RotationAngle)
+		self.Location.Y += (ship.Speed * self.speedRatio * delta) * math.Sin(self.RotationAngle)
 	}
 }
 
