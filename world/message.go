@@ -25,7 +25,8 @@ func (self *storage) message(user *structs.User) {
 	for user.IsInWorld() {
 		if err := user.GetConn().ReadJSON(&json); err == nil {
 			details := json["details"].(map[string]interface{})
-			switch json["action"] {
+			action := json["action"].(string)
+			switch action {
 			case "exitWorld":
 				self.remove(user, true)
 				return
@@ -33,6 +34,12 @@ func (self *storage) message(user *structs.User) {
 				self.chat(&json)
 			case "move":
 				self.move(user, details)
+			default:
+				user.GetConn().WriteJSON(map[string]string{
+					"action":  "fuckup",
+					"details": "unrecognizedAction " + action,
+				})
+
 			}
 		} else {
 			if err.Error() == "EOF" {

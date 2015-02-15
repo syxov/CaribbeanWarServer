@@ -48,11 +48,12 @@ func (self *User) Bounds() *rtree.Rect {
 }
 
 func (self *User) SetMove(moveType string) {
+	self.Lock()
 	switch moveType {
 	case "upward":
-		self.targetSpeedRatio = math.Min(self.targetSpeedRatio+1/3, 1)
+		self.targetSpeedRatio = math.Min(self.targetSpeedRatio+1/3.0, 1.0)
 	case "backward":
-		self.targetSpeedRatio = math.Max(self.targetSpeedRatio-1/3, 0)
+		self.targetSpeedRatio = math.Max(self.targetSpeedRatio-1/3.0, 0.0)
 	case "left":
 		self.rotationDirection = left
 	case "right":
@@ -65,6 +66,7 @@ func (self *User) SetMove(moveType string) {
 			"details": "unrecognized command to move" + moveType,
 		})
 	}
+	self.Unlock()
 }
 
 func (self *User) UpdatePosition(delta float64) {
