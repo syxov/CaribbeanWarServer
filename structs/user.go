@@ -51,9 +51,9 @@ func (self *User) SetMove(moveType string) {
 	self.Lock()
 	switch moveType {
 	case "upward":
-		self.sailsMode = math.Min(self.sailsMode+1, 4)
+		self.sailsMode = int16(math.Min(float64(self.sailsMode+1), 3))
 	case "backward":
-		self.sailsMode = math.Max(self.sailsMode-1, 0)
+		self.sailsMode = int16(math.Max(float64(self.sailsMode-1), 0))
 	case "left":
 		self.rotationDirection = left
 	case "right":
@@ -72,12 +72,12 @@ func (self *User) SetMove(moveType string) {
 func (self *User) UpdatePosition(delta float64) {
 	ship := self.SelectedShip
 	if ship != nil {
-		self.speedRatio = lerp(self.speedRatio, self.sailsMode * ship.Speed * delta /4, velocity)
+		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		if self.rotationDirection != none {
 			if self.rotationDirection == right {
-				self.RotationAngle = math.Mod(self.RotationAngle + (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
+				self.RotationAngle = math.Mod(self.RotationAngle+(angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
 			} else {
-				self.RotationAngle = math.Mod(self.RotationAngle - (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
+				self.RotationAngle = math.Mod(self.RotationAngle-(angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
 			}
 		}
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
