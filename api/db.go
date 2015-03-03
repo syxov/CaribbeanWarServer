@@ -23,6 +23,7 @@ func (self *DbConnection) Close() {
 func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, error) {
 	var (
 		id       uint
+		shipId   uint
 		cash     uint
 		nick     string
 		rotation float64
@@ -53,9 +54,9 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 	}
 	ships := []structs.Ship{}
 	for rows.Next() {
-		rows.Scan(&id, &name, &weight, &cannonCount, &speed, &hp)
+		rows.Scan(&shipId, &name, &weight, &cannonCount, &speed, &hp)
 		ships = append(ships, structs.Ship{
-			ID:          id,
+			ID:          shipId,
 			Name:        name,
 			Weight:      weight,
 			CannonCount: cannonCount,
