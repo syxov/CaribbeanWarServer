@@ -11,8 +11,8 @@ const (
 	left = iota
 	right
 	none
-	angleSpeed         = 10
-	velocity   float64 = 1
+	angleSpeed float64 = 0.075
+	velocity   float64 = 0.01
 )
 
 type NearestUser struct {
@@ -36,7 +36,7 @@ type User struct {
 	RotationAngle     float64       `json:"alpha"`
 	conn              *websocket.Conn
 	inWorld           bool
-	targetSpeedRatio  float64
+	sailsMode         int16
 	speedRatio        float64
 	rotationDirection byte
 	sync.Mutex
@@ -51,9 +51,9 @@ func (self *User) SetMove(moveType string) {
 	self.Lock()
 	switch moveType {
 	case "upward":
-		self.targetSpeedRatio = math.Min(self.targetSpeedRatio+1/3.0, 1.0)
+		self.sailsMode = math.Min(self.sailsMode+1, 4)
 	case "backward":
-		self.targetSpeedRatio = math.Max(self.targetSpeedRatio-1/3.0, 0.0)
+		self.sailsMode = math.Max(self.sailsMode-1, 0)
 	case "left":
 		self.rotationDirection = left
 	case "right":
@@ -62,26 +62,26 @@ func (self *User) SetMove(moveType string) {
 		self.rotationDirection = none
 	default:
 		self.GetConn().WriteJSON(map[string]string{
-			"action":  "fuckup",
-			"details": "unrecognized command to move" + moveType,
+			"action":  "error",
+			"details": "ERRORS_UNKNOWN_ACTION",
 		})
 	}
 	self.Unlock()
 }
 
 func (self *User) UpdatePosition(delta float64) {
-	if self.rotationDirection != none {
-		if self.rotationDirection == right {
-			self.RotationAngle = math.Mod(self.RotationAngle+angleSpeed*delta, math.Pi)
-		} else {
-			self.RotationAngle = math.Mod(self.RotationAngle-angleSpeed*delta, math.Pi)
-		}
-	}
-	self.speedRatio = lerp(self.speedRatio, self.targetSpeedRatio, delta)
 	ship := self.SelectedShip
 	if ship != nil {
-		self.Location.X += (ship.Speed * self.speedRatio * delta) * math.Cos(self.RotationAngle)
-		self.Location.Y += (ship.Speed * self.speedRatio * delta) * math.Sin(self.RotationAngle)
+		self.speedRatio = lerp(self.speedRatio, self.sailsMode * ship.Speed * delta /4, velocity)
+		if self.rotationDirection != none {
+			if self.rotationDirection == right {
+				self.RotationAngle = math.Mod(self.RotationAngle + (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
+			} else {
+				self.RotationAngle = math.Mod(self.RotationAngle - (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
+			}
+		}
+		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
+		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 	}
 }
 
