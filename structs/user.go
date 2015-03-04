@@ -70,12 +70,21 @@ func (self *User) SetMove(moveType string) {
 }
 
 func (self *User) UpdatePosition(delta float64) {
+	self.Lock()
+	defer self.Unlock()
 	ship := self.SelectedShip
 	if ship != nil {
 		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
+		self.GetConn().WriteJSON(map[string]interface{}{
+			"action": "position",
+			"details": map[string]float64{
+				"locationX": self.Location.X,
+				"locationY": self.Location.Y,
+			},
+		})
 	}
 }
 

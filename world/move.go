@@ -33,9 +33,7 @@ func (self *storage) movement(user *structs.User) {
 		self.Lock()
 		isDeleted := self.ocean.Delete(user)
 		if isDeleted {
-			user.Lock()
 			user.UpdatePosition(0.01)
-			user.Unlock()
 			self.ocean.Insert(user)
 		}
 		self.Unlock()
