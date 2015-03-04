@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	left = iota
-	right
-	none
+	left               = -1
+	right              = 1
+	none               = 0
 	angleSpeed float64 = 0.075
 	velocity   float64 = 0.01
 )
@@ -38,7 +38,7 @@ type User struct {
 	inWorld           bool
 	sailsMode         int16
 	speedRatio        float64
-	rotationDirection byte
+	rotationDirection int16
 	sync.Mutex
 }
 
@@ -51,9 +51,9 @@ func (self *User) SetMove(moveType string) {
 	self.Lock()
 	switch moveType {
 	case "upward":
-		self.sailsMode = math.Min(self.sailsMode+1, 4)
+		self.sailsMode = int16(math.Min(float64(self.sailsMode+1), 3))
 	case "backward":
-		self.sailsMode = math.Max(self.sailsMode-1, 0)
+		self.sailsMode = int16(math.Max(float64(self.sailsMode-1), 0))
 	case "left":
 		self.rotationDirection = left
 	case "right":
@@ -72,16 +72,10 @@ func (self *User) SetMove(moveType string) {
 func (self *User) UpdatePosition(delta float64) {
 	ship := self.SelectedShip
 	if ship != nil {
-		self.speedRatio = lerp(self.speedRatio, self.sailsMode * ship.Speed * delta /4, velocity)
-		if self.rotationDirection != none {
-			if self.rotationDirection == right {
-				self.RotationAngle = math.Mod(self.RotationAngle + (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
-			} else {
-				self.RotationAngle = math.Mod(self.RotationAngle - (angleSpeed * self.speedRatio)/(self.sailsMode+1), 2 * math.Pi)
-			}
-		}
+		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
+		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
 	}
 }
 
