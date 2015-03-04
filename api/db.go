@@ -22,12 +22,11 @@ func (self *DbConnection) Close() {
 
 func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, error) {
 	var (
-		id       uint
-		shipId   uint
-		cash     uint
-		nick     string
-		rotation float64
-		location []uint8
+		id                                 uint
+		shipId                             uint
+		cash                               uint
+		nick                               string
+		rotation, coordinateX, coordinateY float64
 
 		name        string
 		weight      uint16
@@ -36,9 +35,9 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		hp          uint16
 	)
 	err := self.db.QueryRow(`
-		SELECT id, cash, nick, location, rotation FROM users 
+		SELECT id, cash, nick, coordinate_x, coordinate_y, rotation FROM users 
 		WHERE email=$1 AND password=$2
-	`, email, password).Scan(&id, &cash, &nick, &location, &rotation)
+	`, email, password).Scan(&id, &cash, &nick, &coordinateX, &coordinateY, &rotation)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +68,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		Email:         email,
 		Cash:          cash,
 		Nick:          nick,
-		Location:      &structs.Point{float64(location[0]), float64(location[1])},
+		Location:      &structs.Point{coordinateX, coordinateY},
 		Ships:         ships,
 		RotationAngle: rotation,
 	}, nil
@@ -78,8 +77,8 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 func (self *DbConnection) SaveUserLocation(user *structs.User) error {
 	_, err := self.db.Query(`
 		UPDATE users
-		SET location=$1, rotation=$2
-		WHERE id=$3
-	`, user.Location, user.RotationAngle, user.ID)
+		SET coordinate_x=$1, coordinate_y=$2, rotation=$3
+		WHERE id=$4
+	`, user.Location.X, user.Location.Y, user.RotationAngle, user.ID)
 	return err
 }
