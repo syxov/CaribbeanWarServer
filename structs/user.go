@@ -2,7 +2,6 @@ package structs
 
 import (
 	"CaribbeanWarServer/rtree"
-	"github.com/gorilla/websocket"
 	"math"
 	"sync"
 )
@@ -16,12 +15,12 @@ const (
 )
 
 type NearestUser struct {
-	ID            *uint           `json:"id"`
-	Conn          *websocket.Conn `json:""`
-	Ship          *Ship           `json:"ship"`
-	Nick          *string         `json:"nick"`
-	Location      *Point          `json:"location"`
-	RotationAngle float64         `json:"alpha"`
+	ID            *uint       `json:"id"`
+	Conn          *Connection `json:""`
+	Ship          *Ship       `json:"ship"`
+	Nick          *string     `json:"nick"`
+	Location      *Point      `json:"location"`
+	RotationAngle float64     `json:"alpha"`
 }
 
 type User struct {
@@ -34,7 +33,7 @@ type User struct {
 	SelectedShip      *Ship         `json:"selectedShip"`
 	NearestUsers      []NearestUser `json:"nearestUsers"`
 	RotationAngle     float64       `json:"alpha"`
-	conn              *websocket.Conn
+	conn              *Connection
 	inWorld           bool
 	sailsMode         int16
 	speedRatio        float64
@@ -92,11 +91,11 @@ func lerp(start, end, delta float64) float64 {
 	return start + delta*(end-start)
 }
 
-func (self *User) GetConn() *websocket.Conn {
+func (self *User) GetConn() *Connection {
 	return self.conn
 }
 
-func (self *User) SetConn(conn *websocket.Conn) {
+func (self *User) SetConn(conn *Connection) {
 	self.conn = conn
 }
 

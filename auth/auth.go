@@ -37,7 +37,8 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 	harbor = _harbor
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data interface{}
-		conn, _ := upgrader.Upgrade(w, r, nil)
+		_conn, _ := upgrader.Upgrade(w, r, nil)
+		conn := &structs.Connection{Conn: _conn}
 		go ping(conn)
 		errorMessage := map[string]interface{}{"action": "fuckup"}
 		if err := conn.ReadJSON(&data); err == nil {
@@ -59,7 +60,7 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 	}
 }
 
-func auth(dataMap map[string]interface{}, conn *websocket.Conn) bool {
+func auth(dataMap map[string]interface{}, conn *structs.Connection) bool {
 	added := false
 	message := map[string]interface{}{"action": "auth"}
 	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
@@ -86,7 +87,7 @@ func auth(dataMap map[string]interface{}, conn *websocket.Conn) bool {
 	return added
 }
 
-func ping(conn *websocket.Conn) {
+func ping(conn *structs.Connection) {
 	for {
 		time.Sleep(13 * time.Second)
 		if err := conn.WriteMessage(websocket.TextMessage, []byte("{}")); err != nil {

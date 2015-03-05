@@ -4,7 +4,6 @@ import (
 	"CaribbeanWarServer/structs"
 	"CaribbeanWarServer/world"
 	"errors"
-	"github.com/gorilla/websocket"
 	"strconv"
 	"sync"
 )
@@ -90,6 +89,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 				if value.ID == id {
 					user.SelectedShip = &value
 					world.Add(user)
+					user.Lock()
 					user.GetConn().WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
 						"details": map[string]interface{}{
@@ -99,6 +99,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 							"location":     user.Location,
 						},
 					})
+					user.Unlock()
 					self.Remove(user.ID)
 					return
 				}
@@ -112,7 +113,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 	}
 }
 
-func (self *harborStruct) sendErrorMessage(conn *websocket.Conn, err error) {
+func (self *harborStruct) sendErrorMessage(conn *structs.Connection, err error) {
 	conn.WriteJSON(map[string]interface{}{
 		"action": "fuckup",
 		"details": map[string]string{
