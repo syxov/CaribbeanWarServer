@@ -42,12 +42,15 @@ type User struct {
 }
 
 func (self *User) Bounds() *rtree.Rect {
+	self.Lock()
 	bound, _ := rtree.NewRect(rtree.Point{self.Location.X, self.Location.Y}, []float64{1, 1})
+	self.Unlock()
 	return bound
 }
 
 func (self *User) SetMove(moveType string) {
 	self.Lock()
+	defer self.Unlock()
 	switch moveType {
 	case "upward":
 		self.sailsMode = int16(math.Min(float64(self.sailsMode+1), 3))
@@ -65,7 +68,6 @@ func (self *User) SetMove(moveType string) {
 			"details": "ERRORS_UNKNOWN_ACTION",
 		})
 	}
-	self.Unlock()
 }
 
 func (self *User) UpdatePosition(delta float64) {
@@ -80,8 +82,9 @@ func (self *User) UpdatePosition(delta float64) {
 		self.GetConn().WriteJSON(map[string]interface{}{
 			"action": "position",
 			"details": map[string]float64{
-				"locationX": self.Location.X,
-				"locationY": self.Location.Y,
+				"x":     self.Location.X,
+				"y":     self.Location.Y,
+				"alpha": self.RotationAngle,
 			},
 		})
 	}
