@@ -29,11 +29,12 @@ func (self *storage) movement(user *structs.User) {
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
 	for user.IsInWorld() {
+		timeStamp := time.Now().UnixNano()
 		<-ticker.C
 		self.Lock()
 		isDeleted := self.ocean.Delete(user)
 		if isDeleted {
-			user.UpdatePosition(0.01)
+			user.UpdatePosition(float64(time.Now().UnixNano()-timeStamp) / float64(time.Second))
 			self.ocean.Insert(user)
 		}
 		self.Unlock()
