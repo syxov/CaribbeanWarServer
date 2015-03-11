@@ -9,11 +9,13 @@ import (
 const radius = 100000
 
 func (self *storage) findNeigbours(user *structs.User) {
+	user.Lock()
 	if user.NearestUsers == nil {
 		user.NearestUsers = make([]structs.NearestUser, 0, 5)
 	}
 	mostNegativePoint := rtree.Point([]float64{user.Location.X - radius/2, user.Location.Y - radius/2})
 	rect, _ := rtree.NewRect(mostNegativePoint, []float64{radius, radius})
+	user.Unlock()
 	self.Lock()
 	spatials := self.ocean.SearchIntersect(rect)
 	self.Unlock()
