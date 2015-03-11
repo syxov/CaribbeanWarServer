@@ -42,9 +42,7 @@ type User struct {
 }
 
 func (self *User) Bounds() *rtree.Rect {
-	self.Lock()
 	bound, _ := rtree.NewRect(rtree.Point{self.Location.X, self.Location.Y}, []float64{1, 1})
-	self.Unlock()
 	return bound
 }
 

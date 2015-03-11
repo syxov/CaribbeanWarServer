@@ -90,6 +90,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 					user.SelectedShip = &value
 					world.Add(user)
 					user.Lock()
+					defer user.Unlock()
 					user.GetConn().WriteJSON(map[string]interface{}{
 						"action": "enterWorld",
 						"details": map[string]interface{}{
@@ -99,7 +100,6 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 							"location":     user.Location,
 						},
 					})
-					user.Unlock()
 					self.Remove(user.ID)
 					return
 				}

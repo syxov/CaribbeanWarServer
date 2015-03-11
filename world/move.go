@@ -7,6 +7,9 @@ import (
 
 func (self *storage) move(user *structs.User, data map[string]interface{}) {
 	moveType := data["type"].(string)
+	user.SetMove(moveType)
+	user.Lock()
+	defer user.Unlock()
 	sendData := map[string]interface{}{
 		"action": "move",
 		"details": map[string]interface{}{
@@ -16,13 +19,10 @@ func (self *storage) move(user *structs.User, data map[string]interface{}) {
 			"alpha":    user.RotationAngle,
 		},
 	}
-	user.SetMove(moveType)
-	user.Lock()
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(sendData)
 	}
 	user.GetConn().WriteJSON(sendData)
-	user.Unlock()
 }
 
 func (self *storage) movement(user *structs.User) {

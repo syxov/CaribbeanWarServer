@@ -1,7 +1,6 @@
 package world
 
 import (
-	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
 	"time"
 )
@@ -9,15 +8,14 @@ import (
 const radius = 100000
 
 func (self *storage) findNeigbours(user *structs.User) {
-	user.Lock()
-	self.Lock()
-	defer self.Unlock()
-	defer user.Unlock()
-	rect, _ := rtree.NewRect(rtree.Point{user.Location.X, user.Location.Y}, []float64{radius, radius})
 	if user.NearestUsers == nil {
 		user.NearestUsers = make([]structs.NearestUser, 0, 5)
 	}
-	spatials := self.ocean.SearchIntersect(rect)
+	self.Lock()
+	spatials := self.ocean.SearchIntersect(user.Bounds())
+	self.Unlock()
+	user.Lock()
+	defer user.Unlock()
 	nearestUsers := make([]structs.NearestUser, 0, len(spatials))
 	for _, value := range spatials {
 		convertedValue := value.(*structs.User)
