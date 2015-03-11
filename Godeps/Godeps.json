@@ -9,6 +9,10 @@
 		{
 			"ImportPath": "github.com/lib/pq",
 			"Rev": "c6325123e6d45115749734a8bc35060ebac74d0e"
+		},
+		{
+			"ImportPath": "github.com/zond/gotomic",
+			"Rev": "5b217c5578228ff3979c9f9459959176fb54c388"
 		}
 	]
 }
