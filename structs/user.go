@@ -41,8 +41,10 @@ type User struct {
 	sync.Mutex
 }
 
+const boundLength = 1
+
 func (self *User) Bounds() *rtree.Rect {
-	bound, _ := rtree.NewRect(rtree.Point{self.Location.X, self.Location.Y}, []float64{1, 1})
+	bound, _ := rtree.NewRect(rtree.Point{self.Location.X - boundLength/2, self.Location.Y - boundLength/2}, []float64{boundLength, boundLength})
 	return bound
 }
 
