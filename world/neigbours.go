@@ -30,8 +30,10 @@ func (self *storage) findNeigbours(user *structs.User) {
 			})
 		}
 	}
-	addedGamers := getAddedGamers(&user.NearestUsers, &nearestUsers)
-	removedGamers := getRemovedGamers(&user.NearestUsers, &nearestUsers)
+	addedGamersChanel, removedGamersChanel := make(chan []structs.NearestUser), make(chan []structs.NearestUser)
+	go getDifference(&nearestUsers, &user.NearestUsers, addedGamersChanel)
+	go getDifference(&user.NearestUsers, &nearestUsers, removedGamersChanel)
+	addedGamers, removedGamers := <-addedGamersChanel, <-removedGamersChanel
 	user.NearestUsers = nearestUsers
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.GetConn().WriteJSON(map[string]interface{}{
@@ -51,40 +53,21 @@ func (self *storage) findNeigboursRepeater(user *structs.User) {
 	}
 }
 
-func getAddedGamers(p_oldNearestUsers, p_newNearestUsers *[]structs.NearestUser) []structs.NearestUser {
-	oldNearestUsers := *p_oldNearestUsers
-	newNearestUsers := *p_newNearestUsers
-	newGamersSlice := make([]structs.NearestUser, 0, 2)
-	for _, nearestUser := range newNearestUsers {
-		isNew := true
-		for _, oldNearestUser := range oldNearestUsers {
-			if nearestUser.ID == oldNearestUser.ID {
-				isNew = false
+func getDifference(p_firstSlice, p_secondSlice *[]structs.NearestUser, channel chan []structs.NearestUser) {
+	firstSlice := *p_firstSlice
+	secondSlice := *p_secondSlice
+	difference := make([]structs.NearestUser, 0, 10)
+	for _, firstSliceUser := range firstSlice {
+		isShouldBeAddToDiff := true
+		for _, secondSliceUser := range secondSlice {
+			if firstSliceUser.ID == secondSliceUser.ID {
+				isShouldBeAddToDiff = false
 				break
 			}
 		}
-		if isNew {
-			newGamersSlice = append(newGamersSlice, nearestUser)
+		if isShouldBeAddToDiff {
+			difference = append(difference, firstSliceUser)
 		}
 	}
-	return newGamersSlice
-}
-
-func getRemovedGamers(p_oldNearestUsers, p_newNearestUsers *[]structs.NearestUser) []structs.NearestUser {
-	oldNearestUsers := *p_oldNearestUsers
-	newNearestUsers := *p_newNearestUsers
-	removedGamersSlice := make([]structs.NearestUser, 0, 2)
-	for _, oldNearestUser := range oldNearestUsers {
-		isShouldBeRemoved := true
-		for _, newNearestUser := range newNearestUsers {
-			if oldNearestUser.ID == newNearestUser.ID {
-				isShouldBeRemoved = false
-				break
-			}
-		}
-		if isShouldBeRemoved {
-			removedGamersSlice = append(removedGamersSlice, oldNearestUser)
-		}
-	}
-	return removedGamersSlice
+	channel <- difference
 }
