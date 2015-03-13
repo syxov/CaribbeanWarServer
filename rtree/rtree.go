@@ -61,7 +61,7 @@ type entry struct {
 
 // Any type that implements Spatial can be stored in an Rtree and queried.
 type Spatial interface {
-	Bounds() *Rect
+	Bounds(...float64) *Rect
 }
 
 // Insertion

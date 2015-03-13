@@ -7,12 +7,15 @@ import (
 )
 
 const (
-	left               = -1
-	right              = 1
-	none               = 0
-	angleSpeed float64 = 0.075
-	velocity   float64 = 0.01
+	left       = -1
+	right      = 1
+	none       = 0
+	angleSpeed = 0.075
+	velocity   = 0.01
 )
+
+type sailsModeType byte
+type rotationType int8
 
 type NearestUser struct {
 	ID            *uint       `json:"id"`
@@ -35,16 +38,18 @@ type User struct {
 	RotationAngle     float64       `json:"alpha"`
 	conn              *Connection
 	inWorld           bool
-	sailsMode         int16
+	sailsMode         sailsModeType
 	speedRatio        float64
-	rotationDirection int16
+	rotationDirection rotationType
 	sync.Mutex
 }
 
-const boundLength = 1
-
-func (self *User) Bounds() *rtree.Rect {
-	bound, _ := rtree.NewRect(rtree.Point{self.Location.X - boundLength/2, self.Location.Y - boundLength/2}, []float64{boundLength, boundLength})
+func (self *User) Bounds(radius ...float64) *rtree.Rect {
+	var value float64 = 1
+	if len(radius) != 0 {
+		value = radius[0]
+	}
+	bound, _ := rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value})
 	return bound
 }
 
@@ -53,9 +58,9 @@ func (self *User) SetMove(moveType string) {
 	defer self.Unlock()
 	switch moveType {
 	case "upward":
-		self.sailsMode = int16(math.Min(float64(self.sailsMode+1), 3))
+		self.sailsMode = sailsModeType(math.Min(float64(self.sailsMode+1), 3))
 	case "backward":
-		self.sailsMode = int16(math.Max(float64(self.sailsMode-1), 0))
+		self.sailsMode = sailsModeType(math.Max(float64(self.sailsMode-1), 0))
 	case "left":
 		self.rotationDirection = left
 	case "right":

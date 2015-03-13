@@ -1,7 +1,6 @@
 package world
 
 import (
-	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
 	"time"
 )
@@ -13,8 +12,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 	if user.NearestUsers == nil {
 		user.NearestUsers = make([]structs.NearestUser, 0, 5)
 	}
-	mostNegativePoint := rtree.Point([]float64{user.Location.X - radius/2, user.Location.Y - radius/2})
-	rect, _ := rtree.NewRect(mostNegativePoint, []float64{radius, radius})
+	rect := user.Bounds(radius)
 	user.Unlock()
 	self.Lock()
 	spatials := self.ocean.SearchIntersect(rect)
@@ -39,8 +37,8 @@ func (self *storage) findNeigbours(user *structs.User) {
 	go getDifference(&nearestUsers, &user.NearestUsers, addedGamersChanel)
 	go getDifference(&user.NearestUsers, &nearestUsers, removedGamersChanel)
 	addedGamers, removedGamers := <-addedGamersChanel, <-removedGamersChanel
-	user.NearestUsers = nearestUsers
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
+		user.NearestUsers = nearestUsers
 		user.GetConn().WriteJSON(map[string]interface{}{
 			"action": "neighbours",
 			"details": map[string][]structs.NearestUser{
