@@ -68,7 +68,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		Email:         email,
 		Cash:          cash,
 		Nick:          nick,
-		Location:      &structs.Point{coordinateX, coordinateY},
+		Location:      &structs.Point2D{coordinateX, coordinateY},
 		Ships:         ships,
 		RotationAngle: rotation,
 	}, nil

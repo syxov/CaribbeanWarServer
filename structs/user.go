@@ -4,6 +4,7 @@ import (
 	"CaribbeanWarServer/rtree"
 	"math"
 	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -22,7 +23,7 @@ type NearestUser struct {
 	Conn          *Connection `json:""`
 	Ship          *Ship       `json:"ship"`
 	Nick          *string     `json:"nick"`
-	Location      *Point      `json:"location"`
+	Location      *Point2D    `json:"location"`
 	RotationAngle float64     `json:"alpha"`
 }
 
@@ -31,13 +32,13 @@ type User struct {
 	Email             string        `json:"email"`
 	Nick              string        `json:"nick"`
 	Cash              uint          `json:"cash"`
-	Location          *Point        `json:"location"`
+	Location          *Point2D      `json:"location"`
 	Ships             []Ship        `json:"ships"`
 	SelectedShip      *Ship         `json:"selectedShip"`
 	NearestUsers      []NearestUser `json:"nearestUsers"`
 	RotationAngle     float64       `json:"alpha"`
 	conn              *Connection
-	inWorld           bool
+	inWorld           atomic.Value
 	sailsMode         sailsModeType
 	speedRatio        float64
 	rotationDirection rotationType
@@ -108,9 +109,9 @@ func (self *User) SetConn(conn *Connection) {
 }
 
 func (self *User) IsInWorld() bool {
-	return self.inWorld
+	return self.inWorld.Load().(bool)
 }
 
 func (self *User) SetIsInWorld(is bool) {
-	self.inWorld = is
+	self.inWorld.Store(is)
 }

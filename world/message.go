@@ -34,6 +34,8 @@ func (self *storage) message(user *structs.User) {
 				self.chat(&json)
 			case "move":
 				self.move(user, details)
+			case "shoot":
+				self.shoot(user, details)
 			default:
 				user.GetConn().WriteJSON(map[string]string{
 					"action":  "fuckup",
