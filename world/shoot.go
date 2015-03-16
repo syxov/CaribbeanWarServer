@@ -6,9 +6,21 @@ import (
 )
 
 func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
-	position := details["position"].(map[string]float64)
+	defer func() {
+		if err := recover(); err != nil {
+			user.GetConn().WriteJSON(map[string]interface{}{
+				"action": "error",
+				"details": map[string]interface{}{
+					"from":    "shoot",
+					"message": err,
+				},
+			})
+		}
+	}()
+	position := details["location"].(map[string]interface{})
 	angle := details["angle"].(float64)
-	core := structs.NewCore(&structs.Point3D{position["x"], position["y"], position["z"]}, angle, user.RotationAngle, user.ID)
+	user.Lock()
+	core := structs.NewCore(&structs.Point3D{position["x"].(float64), position["y"].(float64), position["z"].(float64)}, angle, user.RotationAngle, user.ID)
 	message := map[string]interface{}{
 		"action": "shoot",
 		"details": map[string]interface{}{
@@ -18,7 +30,6 @@ func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
 			"location": position,
 		},
 	}
-	user.Lock()
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(message)
 	}

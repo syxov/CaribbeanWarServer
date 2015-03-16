@@ -20,7 +20,7 @@ type rotationType int8
 
 type NearestUser struct {
 	ID            *uint       `json:"id"`
-	Conn          *Connection `json:""`
+	Conn          *Connection `json:"-"`
 	Ship          *Ship       `json:"ship"`
 	Nick          *string     `json:"nick"`
 	Location      *Point2D    `json:"location"`
