@@ -46,7 +46,7 @@ type User struct {
 }
 
 func (self *User) Bounds(radius ...float64) *rtree.Rect {
-	var value float64 = 1
+	var value float64 = 5
 	if len(radius) != 0 {
 		value = radius[0]
 	}

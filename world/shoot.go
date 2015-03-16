@@ -22,8 +22,8 @@ func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(message)
 	}
-	user.GetConn().WriteJSON(message)
 	user.Unlock()
+	user.GetConn().WriteJSON(message)
 	go self.updateCore(core)
 }
 

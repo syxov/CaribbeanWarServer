@@ -38,8 +38,8 @@ func (self *storage) message(user *structs.User) {
 				self.shoot(user, details)
 			default:
 				user.GetConn().WriteJSON(map[string]string{
-					"action":  "fuckup",
-					"details": "unrecognizedAction " + action,
+					"action":  "error",
+					"details": "unrecognized action " + action,
 				})
 
 			}
@@ -49,7 +49,7 @@ func (self *storage) message(user *structs.User) {
 				return
 			} else {
 				user.GetConn().WriteJSON(map[string]string{
-					"action":  "fuckup",
+					"action":  "error",
 					"details": err.Error(),
 				})
 			}
