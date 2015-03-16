@@ -15,7 +15,7 @@ const (
 	velocity   = 0.01
 )
 
-type sailsModeType byte
+type sailsModeType int8
 type rotationType int8
 
 type NearestUser struct {
