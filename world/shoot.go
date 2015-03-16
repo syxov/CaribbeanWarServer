@@ -45,7 +45,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 				"action": "error",
 				"details": map[string]interface{}{
 					"from":    "shoot",
-					"message": err,
+					"message": err.(error).Error(),
 				},
 			})
 		}
