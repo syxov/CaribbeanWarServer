@@ -35,10 +35,21 @@ func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
 	}
 	user.Unlock()
 	user.GetConn().WriteJSON(message)
-	go self.updateCore(core)
+	go self.updateCore(core, user)
 }
 
-func (self *storage) updateCore(core *structs.Core) {
+func (self *storage) updateCore(core *structs.Core, user *structs.User) {
+	defer func() {
+		if err := recover(); err != nil {
+			user.GetConn().WriteJSON(map[string]interface{}{
+				"action": "error",
+				"details": map[string]interface{}{
+					"from":    "shoot",
+					"message": err,
+				},
+			})
+		}
+	}()
 	timer := time.NewTicker(10 * time.Millisecond)
 	defer timer.Stop()
 	for core.UnderWater() {
