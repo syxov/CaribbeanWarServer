@@ -13,12 +13,12 @@ type Core struct {
 	time            float64
 }
 
-func NewCore(position *Point3D, angle, alpha float64, ID uint) *Core {
+func NewCore(position *Point3D, angle, direction float64, ID uint) *Core {
 	return &Core{
 		StartPosition:   *position,
 		CurrentPosition: *position,
 		Angle:           angle,
-		Alpha:           alpha,
+		Alpha:           -angle - direction*math.Pi/2,
 		ID:              ID,
 		time:            0,
 	}
@@ -36,7 +36,7 @@ func (self *Core) UpdatePosition(delta float64) {
 }
 
 func (self *Core) UnderWater() bool {
-	return self.CurrentPosition.Z > 0
+	return self.CurrentPosition.Z <= 0
 }
 
 const radius = 1

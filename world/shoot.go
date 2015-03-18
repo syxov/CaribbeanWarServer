@@ -19,8 +19,9 @@ func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
 	}()
 	position := details["location"].(map[string]interface{})
 	angle := details["angle"].(float64)
+	direction := details["direction"].(float64)
 	user.Lock()
-	core := structs.NewCore(&structs.Point3D{position["x"].(float64), position["y"].(float64), position["z"].(float64)}, angle, user.RotationAngle, user.ID)
+	core := structs.NewCore(&structs.Point3D{position["x"].(float64), position["y"].(float64), position["z"].(float64)}, angle, direction, user.ID)
 	message := map[string]interface{}{
 		"action": "shoot",
 		"details": map[string]interface{}{
@@ -52,7 +53,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 	}()
 	timer := time.NewTicker(10 * time.Millisecond)
 	defer timer.Stop()
-	for core.UnderWater() {
+	for !core.UnderWater() {
 		now := time.Now().UnixNano()
 		<-timer.C
 		core.UpdatePosition(float64(time.Now().UnixNano()-now) / float64(time.Second))
