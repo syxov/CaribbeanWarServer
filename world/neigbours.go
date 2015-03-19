@@ -15,13 +15,13 @@ func (self *storage) findNeigbours(user *structs.User) {
 	rect := user.Bounds(radius)
 	user.Unlock()
 	self.Lock()
-	spatials := self.ocean.Search(rect)
+	spatials := self.ocean.SearchIntersect(rect)
 	self.Unlock()
 	user.Lock()
 	defer user.Unlock()
 	nearestUsers := make([]structs.NearestUser, 0, len(spatials))
 	for _, value := range spatials {
-		convertedValue := value.Data().(*structs.User)
+		convertedValue := value.(*structs.User)
 		if convertedValue.ID != user.ID {
 			nearestUsers = append(nearestUsers, structs.NearestUser{
 				ID:            &convertedValue.ID,

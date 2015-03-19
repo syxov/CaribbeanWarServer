@@ -1,7 +1,7 @@
 package structs
 
 import (
-	"CaribbeanWarServer/quadtree"
+	"CaribbeanWarServer/rtree"
 	"math"
 )
 
@@ -39,8 +39,9 @@ func (self *Core) UnderWater() bool {
 	return self.CurrentPosition.Z <= 0
 }
 
-const radius = 1.0
+const radius = 1
 
-func (self *Core) GetBounds() *quadtree.AABB {
-	return quadtree.NewAABB(&quadtree.Point{X: self.CurrentPosition.X, Y: self.CurrentPosition.Y}, &quadtree.Point{X: radius / 2.0, Y: radius / 2.0})
+func (self *Core) GetBounds(r ...int) *rtree.Rect {
+	rect, _ := rtree.NewRect(rtree.Point{self.CurrentPosition.X - radius/2, self.CurrentPosition.Y - radius/2}, []float64{radius, radius})
+	return rect
 }

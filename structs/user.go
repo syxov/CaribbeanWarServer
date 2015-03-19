@@ -1,7 +1,7 @@
 package structs
 
 import (
-	"CaribbeanWarServer/quadtree"
+	"CaribbeanWarServer/rtree"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -45,12 +45,13 @@ type User struct {
 	sync.Mutex
 }
 
-func (self *User) Bounds(radius ...float64) *quadtree.AABB {
-	var value float64 = 2.5
+func (self *User) Bounds(radius ...float64) *rtree.Rect {
+	var value float64 = 5
 	if len(radius) != 0 {
-		value = radius[0] / 2
+		value = radius[0]
 	}
-	return quadtree.NewAABB(self.GetPoint(), &quadtree.Point{X: value, Y: value})
+	bound, _ := rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value})
+	return bound
 }
 
 func (self *User) SetMove(moveType string) {
@@ -113,8 +114,4 @@ func (self *User) IsInWorld() bool {
 
 func (self *User) SetIsInWorld(is bool) {
 	self.inWorld.Store(is)
-}
-
-func (self *User) GetPoint() *quadtree.Point {
-	return quadtree.NewPoint(self.Location.X, self.Location.Y, self)
 }
