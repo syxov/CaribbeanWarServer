@@ -50,8 +50,7 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 	if len(radius) != 0 {
 		value = radius[0]
 	}
-	bound, _ := rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value})
-	return bound
+	return rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value})
 }
 
 func (self *User) SetMove(moveType string) {
@@ -69,31 +68,25 @@ func (self *User) SetMove(moveType string) {
 	case "none":
 		self.rotationDirection = none
 	default:
-		self.GetConn().WriteJSON(map[string]string{
-			"action":  "error",
-			"details": "ERRORS_UNKNOWN_ACTION",
-		})
+		self.GetConn().WriteJSON(ErrorMessage("ERRORS_UNKNOWN_ACTION"))
 	}
 }
 
 func (self *User) UpdatePosition(delta float64) {
 	self.Lock()
-	defer self.Unlock()
 	ship := self.SelectedShip
 	if ship != nil {
 		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
-		self.GetConn().WriteJSON(map[string]interface{}{
-			"action": "position",
-			"details": map[string]float64{
-				"x":     self.Location.X,
-				"y":     self.Location.Y,
-				"alpha": self.RotationAngle,
-			},
-		})
+		self.GetConn().WriteJSON(Message{"position", map[string]interface{}{
+			"x":     self.Location.X,
+			"y":     self.Location.Y,
+			"alpha": self.RotationAngle,
+		}})
 	}
+	self.Unlock()
 }
 
 func lerp(start, end, delta float64) float64 {

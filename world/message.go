@@ -8,51 +8,45 @@ import (
 func (self *storage) message(user *structs.User) {
 	defer func() {
 		if err := recover(); err != nil {
-			var message string
-			switch t := err.(type) {
-			case error:
-				message = t.Error()
-			default:
-				message = "Something wrong"
-			}
-			user.GetConn().WriteJSON(errors.New(message))
-			user.GetConn().Close()
-			self.remove(user, false)
+			self.processError(user, err)
 		}
 	}()
 
-	var json map[string]interface{}
+	var message structs.Message
 	for user.IsInWorld() {
-		if err := user.GetConn().ReadJSON(&json); err == nil {
-			details := json["details"].(map[string]interface{})
-			action := json["action"].(string)
-			switch action {
+		if err := user.GetConn().ReadJSON(&message); err == nil {
+			switch message.Action {
 			case "exitWorld":
 				self.remove(user, true)
 				return
 			case "chat":
-				self.chat(&json)
+				self.chat(&message)
 			case "move":
-				self.move(user, details)
+				self.move(user, message.Details)
 			case "shoot":
-				self.shoot(user, details)
+				self.shoot(user, message.Details)
 			default:
-				user.GetConn().WriteJSON(map[string]string{
-					"action":  "error",
-					"details": "unrecognized action " + action,
-				})
-
+				user.GetConn().WriteJSON(structs.ErrorMessage("unrecognized action " + message.Action))
 			}
 		} else {
 			if err.Error() == "EOF" {
 				self.remove(user, false)
-				return
 			} else {
-				user.GetConn().WriteJSON(map[string]string{
-					"action":  "error",
-					"details": err.Error(),
-				})
+				user.GetConn().WriteJSON(structs.ErrorMessage(err.Error()))
 			}
 		}
 	}
+}
+
+func (self *storage) processError(user *structs.User, err interface{}) {
+	var message string
+	switch t := err.(type) {
+	case error:
+		message = t.Error()
+	default:
+		message = "Something wrong"
+	}
+	user.GetConn().WriteJSON(errors.New(message))
+	user.GetConn().Close()
+	self.remove(user, false)
 }

@@ -8,16 +8,6 @@ import (
 	"math"
 )
 
-// DimError represents a failure due to mismatched dimensions.
-type DimError struct {
-	Expected int
-	Actual   int
-}
-
-func (err DimError) Error() string {
-	return "rtreego: dimension mismatch"
-}
-
 // DistError is an improper distance measurement.  It implements the error
 // and is generated when a distance-related assertion fails.
 type DistError float64
@@ -31,13 +21,9 @@ type Point []float64
 
 // Dist computes the Euclidean distance between two points p and q.
 func (p Point) dist(q Point) float64 {
-	if len(p) != len(q) {
-		panic(DimError{len(p), len(q)})
-	}
 	sum := 0.0
 	for i := range p {
-		dx := p[i] - q[i]
-		sum += dx * dx
+		sum += math.Pow(p[i]-q[i], 2)
 	}
 	return math.Sqrt(sum)
 }
@@ -47,24 +33,16 @@ func (p Point) dist(q Point) float64 {
 //
 // Implemented per Definition 2 of "Nearest Neighbor Queries" by
 // N. Roussopoulos, S. Kelley and F. Vincent, ACM SIGMOD, pages 71-79, 1995.
-func (p Point) minDist(r *Rect) float64 {
-	if len(p) != len(r.p) {
-		panic(DimError{len(p), len(r.p)})
-	}
-
-	sum := 0.0
+func (p Point) minDist(r *Rect) (sum float64) {
 	for i, pi := range p {
 		if pi < r.p[i] {
-			d := pi - r.p[i]
-			sum += d * d
+			sum += math.Pow(pi-r.p[i], 2)
 		} else if pi > r.q[i] {
-			d := pi - r.q[i]
+			d := math.Pow(pi-r.q[i], 2)
 			sum += d * d
-		} else {
-			sum += 0
 		}
 	}
-	return sum
+	return
 }
 
 // minMaxDist computes the minimum of the maximum distances from p to points
@@ -74,10 +52,6 @@ func (p Point) minDist(r *Rect) float64 {
 // Implemented per Definition 4 of "Nearest Neighbor Queries" by
 // N. Roussopoulos, S. Kelley and F. Vincent, ACM SIGMOD, pages 71-79, 1995.
 func (p Point) minMaxDist(r *Rect) float64 {
-	if len(p) != len(r.p) {
-		panic(DimError{len(p), len(r.p)})
-	}
-
 	// by definition, MinMaxDist(p, r) =
 	// min{1<=k<=n}(|pk - rmk|^2 + sum{1<=i<=n, i != k}(|pi - rMi|^2))
 	// where rmk and rMk are defined as follows:
@@ -153,30 +127,24 @@ func (r *Rect) Equal(other *Rect) bool {
 // NewRect constructs and returns a pointer to a Rect given a corner point and
 // the lengths of each dimension.  The point p should be the most-negative point
 // on the rectangle (in every dimension) and every length should be positive.
-func NewRect(p Point, lengths []float64) (r *Rect, err error) {
-	r = new(Rect)
+func NewRect(p Point, lengths []float64) *Rect {
+	r := new(Rect)
 	r.p = p
-	if len(p) != len(lengths) {
-		err = &DimError{len(p), len(lengths)}
-		return
-	}
 	r.q = make([]float64, len(p))
 	for i := range p {
 		if lengths[i] <= 0 {
-			err = DistError(lengths[i])
-			return
+			return nil
 		}
 		r.q[i] = p[i] + lengths[i]
 	}
-	return
+	return r
 }
 
 // size computes the measure of a rectangle (the product of its side lengths).
 func (r *Rect) size() float64 {
 	size := 1.0
 	for i, a := range r.p {
-		b := r.q[i]
-		size *= b - a
+		size *= r.q[i] - a
 	}
 	return size
 }
@@ -201,10 +169,6 @@ func (r *Rect) margin() float64 {
 
 // containsPoint tests whether p is located inside or on the boundary of r.
 func (r *Rect) containsPoint(p Point) bool {
-	if len(p) != len(r.p) {
-		panic(DimError{len(r.p), len(p)})
-	}
-
 	for i, a := range p {
 		// p is contained in (or on) r if and only if p <= a <= q for
 		// every dimension.
@@ -218,10 +182,6 @@ func (r *Rect) containsPoint(p Point) bool {
 
 // containsRect tests whether r2 is is located inside r1.
 func (r1 *Rect) containsRect(r2 *Rect) bool {
-	if len(r1.p) != len(r2.p) {
-		panic(DimError{len(r1.p), len(r2.p)})
-	}
-
 	for i, a1 := range r1.p {
 		b1, a2, b2 := r1.q[i], r2.p[i], r2.q[i]
 		// enforced by constructor: a1 <= b1 and a2 <= b2.
@@ -239,9 +199,6 @@ func (r1 *Rect) containsRect(r2 *Rect) bool {
 // exists, the intersection is nil.
 func intersect(r1, r2 *Rect) *Rect {
 	dim := len(r1.p)
-	if len(r2.p) != dim {
-		panic(DimError{dim, len(r2.p)})
-	}
 
 	// There are four cases of overlap:
 	//
@@ -302,9 +259,6 @@ func boundingBox(r1, r2 *Rect) (bb *Rect) {
 	dim := len(r1.p)
 	bb.p = make([]float64, dim)
 	bb.q = make([]float64, dim)
-	if len(r2.p) != dim {
-		panic(DimError{dim, len(r2.p)})
-	}
 	for i := 0; i < dim; i++ {
 		if r1.p[i] <= r2.p[i] {
 			bb.p[i] = r1.p[i]

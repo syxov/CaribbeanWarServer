@@ -5,9 +5,7 @@ import (
 	"CaribbeanWarServer/structs"
 )
 
-func (self *storage) chat(message *map[string]interface{}) {
-	self.Lock()
-	defer self.Unlock()
+func (self *storage) chat(message *structs.Message) {
 	self.ocean.Each(func(s *rtree.Spatial) {
 		(*s).(*structs.User).GetConn().WriteJSON(message)
 	})

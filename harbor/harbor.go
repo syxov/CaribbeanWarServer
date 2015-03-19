@@ -61,63 +61,63 @@ func (self *harborStruct) indexOf(id uint) (int, error) {
 func (self *harborStruct) waitForShipSelection(user *structs.User) {
 	defer func() {
 		if err := recover(); err != nil {
-			var message string
+			var message = "Something Wrong: Harbor: waitForShip"
 			switch tmp := err.(type) {
 			case error:
 				message = tmp.Error()
-			default:
-				message = "Something Wrong: Harbor: waitForShip"
+			case string:
+				message = tmp
 			}
-			self.sendErrorMessage(user.GetConn(), errors.New(message))
+			self.sendErrorMessage(user.GetConn(), message)
 			user.GetConn().Close()
 			self.Remove(user.ID)
 		}
 	}()
-	var dataI map[string]interface{}
-	if err := user.GetConn().ReadJSON(&dataI); err == nil {
-		action := dataI["action"].(string)
-		if action == "enterWorld" {
-			var id uint
-			switch tmp := dataI["details"].(map[string]interface{})["shipId"].(type) {
-			case string:
-				i64, _ := strconv.ParseUint(tmp, 10, 0)
-				id = uint(i64)
-			case float64:
-				id = uint(tmp)
-			}
-			for _, value := range user.Ships {
-				if value.ID == id {
-					user.SelectedShip = &value
-					world.Add(user)
-					user.Lock()
-					defer user.Unlock()
-					user.GetConn().WriteJSON(map[string]interface{}{
-						"action": "enterWorld",
-						"details": map[string]interface{}{
-							"success":      true,
-							"nearestUsers": user.NearestUsers,
-							"shipInfo":     user.SelectedShip,
-							"location":     user.Location,
-						},
-					})
-					self.Remove(user.ID)
-					return
-				}
-			}
-			panic(errors.New("Unrecognized ship"))
-		} else {
-			panic(errors.New("Unrecognized action"))
-		}
-	} else {
+	var data structs.Message
+	if err := user.GetConn().ReadJSON(&data); err != nil {
 		panic(err)
 	}
+	if data.Action != "enterWorld" {
+		panic("Unrecognized action")
+	}
+	shipId := parseShipId(data.Details)
+	selectedShip := findShipById(user.Ships, shipId)
+	if selectedShip == nil {
+		panic("Unrecognized ship")
+	}
+	user.SelectedShip = selectedShip
+	world.Add(user)
+	user.Lock()
+	user.GetConn().WriteJSON(structs.Message{"enterWorld", map[string]interface{}{
+		"success":      true,
+		"nearestUsers": user.NearestUsers,
+		"shipInfo":     user.SelectedShip,
+		"location":     user.Location,
+	}})
+	user.Unlock()
+	self.Remove(user.ID)
 }
 
-func (self *harborStruct) sendErrorMessage(conn *structs.Connection, err error) {
-	conn.WriteJSON(map[string]interface{}{
-		"action": "fuckup",
-		"details": map[string]string{
-			"message": err.Error(),
-		},
-	})
+func (self *harborStruct) sendErrorMessage(conn *structs.Connection, err string) {
+	conn.WriteJSON(structs.ErrorMessage(err))
+}
+
+func parseShipId(data map[string]interface{}) uint {
+	switch tmp := data["shipId"].(type) {
+	case string:
+		i64, _ := strconv.ParseUint(tmp, 10, 0)
+		return uint(i64)
+	case float64:
+		return uint(tmp)
+	}
+	return 0
+}
+
+func findShipById(ships []structs.Ship, shipId uint) *structs.Ship {
+	for _, value := range ships {
+		if value.ID == shipId {
+			return &value
+		}
+	}
+	return nil
 }

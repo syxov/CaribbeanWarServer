@@ -2,6 +2,7 @@ package structs
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/pquerna/ffjson/ffjson"
 	"sync"
 )
 
@@ -13,7 +14,11 @@ type Connection struct {
 func (self *Connection) WriteJSON(message interface{}) error {
 	self.Lock()
 	defer self.Unlock()
-	return self.Conn.WriteJSON(message)
+	if json, err := ffjson.Marshal(message); err == nil {
+		return self.Conn.WriteMessage(websocket.TextMessage, json)
+	} else {
+		return err
+	}
 }
 
 func (self *Connection) WriteMessage(messageType int, data []byte) error {

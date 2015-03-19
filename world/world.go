@@ -4,13 +4,11 @@ import (
 	"CaribbeanWarServer/api"
 	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
-	"sync"
 )
 
 type storage struct {
 	ocean *rtree.Rtree
 	db    api.DbConnection
-	sync.Mutex
 }
 
 var world storage
@@ -32,9 +30,7 @@ func Add(user *structs.User) {
 
 func (self *storage) add(user *structs.User) {
 	user.SetIsInWorld(true)
-	self.Lock()
 	self.ocean.Insert(user)
-	self.Unlock()
 	self.findNeigbours(user)
 	go self.message(user)
 	go self.findNeigboursRepeater(user)
@@ -43,10 +39,8 @@ func (self *storage) add(user *structs.User) {
 }
 
 func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
-	self.Lock()
 	user.Lock()
 	defer user.Unlock()
-	defer self.Unlock()
 	user.NearestUsers = nil
 	user.SelectedShip = nil
 	user.SetIsInWorld(false)

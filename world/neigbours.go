@@ -14,9 +14,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 	}
 	rect := user.Bounds(radius)
 	user.Unlock()
-	self.Lock()
 	spatials := self.ocean.SearchIntersect(rect)
-	self.Unlock()
 	user.Lock()
 	defer user.Unlock()
 	nearestUsers := make([]structs.NearestUser, 0, len(spatials))
@@ -39,13 +37,10 @@ func (self *storage) findNeigbours(user *structs.User) {
 	addedGamers, removedGamers := <-addedGamersChanel, <-removedGamersChanel
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.NearestUsers = nearestUsers
-		user.GetConn().WriteJSON(map[string]interface{}{
-			"action": "neighbours",
-			"details": map[string][]structs.NearestUser{
-				"added":   addedGamers,
-				"removed": removedGamers,
-			},
-		})
+		user.GetConn().WriteJSON(structs.Message{"neighbours", map[string]interface{}{
+			"added":   addedGamers,
+			"removed": removedGamers,
+		}})
 	}
 }
 

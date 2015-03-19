@@ -36,27 +36,25 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 	db = _db
 	harbor = _harbor
 	return func(w http.ResponseWriter, r *http.Request) {
-		var data interface{}
 		_conn, _ := upgrader.Upgrade(w, r, nil)
 		conn := &structs.Connection{Conn: _conn}
-		go ping(conn)
-		errorMessage := map[string]interface{}{"action": "fuckup"}
-		if err := conn.ReadJSON(&data); err == nil {
-			dataMap := data.(map[string]interface{})
-			if dataMap["action"] == "auth" {
-				if added := auth(dataMap["details"].(map[string]interface{}), conn); added {
-					return
-				} else {
-					errorMessage["details"] = map[string]string{"message": "User do not added"}
-				}
-			} else {
-				errorMessage["details"] = map[string]string{"message": "User do not logged"}
+		defer func() {
+			if err := recover(); err != nil {
+				conn.WriteJSON(err)
+				conn.Close()
 			}
-		} else {
-			errorMessage["details"] = map[string]string{"message": err.Error()}
+		}()
+		var data structs.Message
+		go ping(conn)
+		if err := conn.ReadJSON(&data); err != nil {
+			panic(structs.ErrorMessage(err.Error()))
 		}
-		conn.WriteJSON(errorMessage)
-		conn.Close()
+		if data.Action != "auth" {
+			panic(structs.ErrorMessage("User do not logged"))
+		}
+		if authorized := auth(data.Details, conn); !authorized {
+			panic(structs.ErrorMessage("User do not added"))
+		}
 	}
 }
 
@@ -87,11 +85,10 @@ func auth(dataMap map[string]interface{}, conn *structs.Connection) bool {
 	return added
 }
 
+var message []byte = []byte("{}")
+
 func ping(conn *structs.Connection) {
-	for {
-		time.Sleep(13 * time.Second)
-		if err := conn.WriteMessage(websocket.TextMessage, []byte("{}")); err != nil {
-			return
-		}
+	for conn.WriteMessage(websocket.TextMessage, message) == nil {
+		time.Sleep(20 * time.Second)
 	}
 }

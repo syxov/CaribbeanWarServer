@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 )
 
 // Rtree represents an R-tree, a balanced search tree for storing and querying
@@ -19,8 +20,8 @@ type Rtree struct {
 	MinChildren int
 	MaxChildren int
 	root        *node
-	size        int
-	height      int
+	height      int32
+	sync.Mutex
 }
 
 // NewTree creates a new R-tree instance.
@@ -32,16 +33,6 @@ func NewTree(Dim, MinChildren, MaxChildren int) *Rtree {
 	rt.root.leaf = true
 	rt.root.level = 1
 	return &rt
-}
-
-// Size returns the number of objects currently stored in tree.
-func (tree *Rtree) Size() int {
-	return tree.size
-}
-
-// Depth returns the maximum depth of tree.
-func (tree *Rtree) Depth() int {
-	return tree.height
 }
 
 // node represents a tree node of an Rtree.
@@ -74,11 +65,13 @@ type Spatial interface {
 func (tree *Rtree) Insert(obj Spatial) {
 	e := entry{obj.Bounds(), nil, obj}
 	tree.insert(e, 1)
-	tree.size++
+	//	atomic.AddInt32(&tree.size, 1)
 }
 
 // insert adds the specified entry to the tree at the specified level.
 func (tree *Rtree) insert(e entry, level int) {
+	tree.Lock()
+	defer tree.Unlock()
 	leaf := tree.chooseNode(tree.root, e, level)
 	leaf.entries = append(leaf.entries, e)
 
@@ -98,7 +91,7 @@ func (tree *Rtree) insert(e entry, level int) {
 		tree.height++
 		tree.root = &node{
 			parent: nil,
-			level:  tree.height,
+			level:  int(tree.height),
 			entries: []entry{
 				entry{bb: oldRoot.computeBoundingBox(), child: oldRoot},
 				entry{bb: splitRoot.computeBoundingBox(), child: splitRoot},
@@ -188,7 +181,9 @@ func (n *node) split(minGroupSize int) (left, right *node) {
 	leftSeed, rightSeed := n.entries[l], n.entries[r]
 
 	// get the entries to be divided between left and right
-	remaining := append(n.entries[:l], n.entries[l+1:r]...)
+	remaining := make([]entry, 0, len(n.entries)-2)
+	remaining = append(remaining, n.entries[:l]...)
+	remaining = append(remaining, n.entries[l+1:r]...)
 	remaining = append(remaining, n.entries[r+1:]...)
 
 	// setup the new split nodes, but re-use n as the left node
@@ -311,6 +306,8 @@ func pickNext(left, right *node, entries []entry) (next int) {
 // Implemented per Section 3.3 of "R-trees: A Dynamic Index Structure for
 // Spatial Searching" by A. Guttman, Proceedings of ACM SIGMOD, p. 47-57, 1984.
 func (tree *Rtree) Delete(obj Spatial) bool {
+	tree.Lock()
+	defer tree.Unlock()
 	n := tree.findLeaf(tree.root, obj)
 	if n == nil {
 		return false
@@ -320,6 +317,7 @@ func (tree *Rtree) Delete(obj Spatial) bool {
 	for i, e := range n.entries {
 		if e.obj == obj {
 			ind = i
+			break
 		}
 	}
 	if ind < 0 {
@@ -329,7 +327,7 @@ func (tree *Rtree) Delete(obj Spatial) bool {
 	n.entries = append(n.entries[:ind], n.entries[ind+1:]...)
 
 	tree.condenseTree(n)
-	tree.size--
+	//	tree.size--
 
 	if !tree.root.leaf && len(tree.root.entries) == 1 {
 		tree.root = tree.root.entries[0].child
@@ -404,6 +402,8 @@ func (tree *Rtree) condenseTree(n *node) {
 // Implemented per Section 3.1 of "R-trees: A Dynamic Index Structure for
 // Spatial Searching" by A. Guttman, Proceedings of ACM SIGMOD, p. 47-57, 1984.
 func (tree *Rtree) SearchIntersect(bb *Rect) []Spatial {
+	tree.Lock()
+	defer tree.Unlock()
 	return tree.searchIntersect(-1, tree.root, bb)
 }
 
@@ -411,6 +411,8 @@ func (tree *Rtree) SearchIntersect(bb *Rect) []Spatial {
 // immediately when the first k results are found. A negative k behaves exactly
 // like SearchIntersect and returns all the results.
 func (tree *Rtree) SearchIntersectWithLimit(k int, bb *Rect) []Spatial {
+	tree.Lock()
+	defer tree.Unlock()
 	return tree.searchIntersect(k, tree.root, bb)
 }
 
@@ -436,6 +438,8 @@ func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect) []Spatial {
 // NearestNeighbor returns the closest object to the specified point.
 // Implemented per "Nearest Neighbor Queries" by Roussopoulos et al
 func (tree *Rtree) NearestNeighbor(p Point) Spatial {
+	tree.Lock()
+	defer tree.Unlock()
 	obj, _ := tree.nearestNeighbor(p, tree.root, math.MaxFloat64, nil)
 	return obj
 }
@@ -519,6 +523,8 @@ func (tree *Rtree) NearestNeighbors(k int, p Point) []Spatial {
 		dists[i] = math.MaxFloat64
 		objs[i] = nil
 	}
+	tree.Lock()
+	defer tree.Unlock()
 	objs, _ = tree.nearestNeighbors(k, p, tree.root, dists, objs)
 	return objs
 }
@@ -566,7 +572,9 @@ func (tree *Rtree) nearestNeighbors(k int, p Point, n *node, dists []float64, ne
 
 func (tree *Rtree) Each(fn func(*Spatial)) {
 	if tree.root != nil {
+		tree.Lock()
 		tree.root.each(fn)
+		tree.Unlock()
 	}
 }
 
