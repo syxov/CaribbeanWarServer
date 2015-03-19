@@ -39,7 +39,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		<-timer.C
 		core.UpdatePosition(float64(time.Now().UnixNano()-now) / float64(time.Second))
 		spatials := self.ocean.SearchIntersectWithLimit(1, core.GetBounds())
-		if len(spatials) == 0 {
+		if len(spatials) == 1 {
 			looser := spatials[0].(*structs.User)
 			looser.Lock()
 			message := structs.Message{"hit", map[string]interface{}{
