@@ -58,9 +58,9 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		<-timer.C
 		core.UpdatePosition(float64(time.Now().UnixNano()-now) / float64(time.Second))
 		self.Lock()
-		spatials := self.ocean.SearchIntersect(core.GetBounds())
+		spatials := self.ocean.KNearest(core.GetBounds(), 1, nil)
 		if len(spatials) > 0 {
-			looser := spatials[0].(*structs.User)
+			looser := spatials[0].Data().(*structs.User)
 			looser.Lock()
 			for _, neigbour := range looser.NearestUsers {
 				neigbour.Conn.WriteJSON(map[string]interface{}{

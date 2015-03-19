@@ -2,13 +2,13 @@ package world
 
 import (
 	"CaribbeanWarServer/api"
-	"CaribbeanWarServer/rtree"
+	"CaribbeanWarServer/quadtree"
 	"CaribbeanWarServer/structs"
 	"sync"
 )
 
 type storage struct {
-	ocean *rtree.Rtree
+	ocean *quadtree.QuadTree
 	db    api.DbConnection
 	sync.Mutex
 }
@@ -17,7 +17,8 @@ var world storage
 var addToHarbor func(*structs.User) error
 
 func init() {
-	world.ocean = rtree.NewTree(2, 2, 50)
+	bound := quadtree.NewAABB(&quadtree.Point{X: 0, Y: 0}, &quadtree.Point{X: 10000000, Y: 100000000})
+	world.ocean = quadtree.New(bound, 0, nil)
 	world.db = api.DbConnection{}
 	world.db.Open()
 }
@@ -33,7 +34,7 @@ func Add(user *structs.User) {
 func (self *storage) add(user *structs.User) {
 	user.SetIsInWorld(true)
 	self.Lock()
-	self.ocean.Insert(user)
+	self.ocean.Insert(user.GetPoint())
 	self.Unlock()
 	self.findNeigbours(user)
 	go self.message(user)
@@ -50,7 +51,7 @@ func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	user.NearestUsers = nil
 	user.SelectedShip = nil
 	user.SetIsInWorld(false)
-	self.ocean.Delete(user)
+	self.ocean.Remove(user.GetPoint())
 	self.db.SaveUserLocation(user)
 	if needAddToHarbor {
 		addToHarbor(user)
