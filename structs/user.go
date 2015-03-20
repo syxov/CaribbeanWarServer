@@ -22,15 +22,15 @@ type sailsModeType int8
 type rotationType int8
 
 type User struct {
-	ID                uint                        `json:"id"`
-	Email             string                      `json:"email"`
-	Nick              string                      `json:"nick"`
-	Cash              uint                        `json:"cash"`
-	Location          point.Point2D               `json:"location"`
-	Ships             []commonStructs.Ship        `json:"ships"`
-	SelectedShip      *commonStructs.Ship         `json:"selectedShip"`
-	NearestUsers      []commonStructs.NearestUser `json:"nearestUsers"`
-	RotationAngle     float64                     `json:"alpha"`
+	ID                uint                       `json:"id"`
+	Email             string                     `json:"email"`
+	Nick              string                     `json:"nick"`
+	Cash              uint                       `json:"cash"`
+	Location          point.Point2D              `json:"location"`
+	Ships             []commonStructs.Ship       `json:"ships"`
+	SelectedShip      *commonStructs.Ship        `json:"selectedShip"`
+	NearestUsers      commonStructs.NearestUsers `json:"nearestUsers"`
+	RotationAngle     float64                    `json:"alpha"`
 	conn              *commonStructs.Connection
 	inWorld           atomic.Value
 	sailsMode         sailsModeType

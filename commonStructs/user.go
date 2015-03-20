@@ -12,3 +12,17 @@ type NearestUser struct {
 	Location      point.Point2D `json:"location"`
 	RotationAngle float64       `json:"alpha"`
 }
+
+type NearestUsers []NearestUser
+
+func (self *NearestUsers) Len() int {
+	return len(*self)
+}
+
+func (self *NearestUsers) Less(i, j int) bool {
+	return (*self)[i].ID < (*self)[j].ID
+}
+
+func (self *NearestUsers) Swap(i, j int) {
+	(*self)[i], (*self)[j] = (*self)[j], (*self)[i]
+}
