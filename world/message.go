@@ -1,8 +1,9 @@
 package world
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
-	"errors"
+	"encoding/json"
 )
 
 func (self *storage) message(user *structs.User) {
@@ -12,9 +13,10 @@ func (self *storage) message(user *structs.User) {
 		}
 	}()
 
-	var message structs.Message
+	var message messagesStructs.Message
 	for user.IsInWorld() {
 		if err := user.GetConn().ReadJSON(&message); err == nil {
+			marshaled, _ := json.Marshal(message)
 			switch message.Action {
 			case "exitWorld":
 				self.remove(user, true)
@@ -22,17 +24,21 @@ func (self *storage) message(user *structs.User) {
 			case "chat":
 				self.chat(&message)
 			case "move":
-				self.move(user, message.Details)
+				var moveMessage messagesStructs.MoveIncome
+				json.Unmarshal(marshaled, &moveMessage)
+				self.move(user, moveMessage)
 			case "shoot":
-				self.shoot(user, message.Details)
+				var shootMessage messagesStructs.ShootIncome
+				json.Unmarshal(marshaled, &shootMessage)
+				self.shoot(user, shootMessage)
 			default:
-				user.GetConn().WriteJSON(structs.ErrorMessage("unrecognized action " + message.Action))
+				user.GetConn().WriteJSON(messagesStructs.ErrorMessage("unrecognized action " + message.Action))
 			}
 		} else {
 			if err.Error() == "EOF" {
 				self.remove(user, false)
 			} else {
-				user.GetConn().WriteJSON(structs.ErrorMessage(err.Error()))
+				user.GetConn().WriteJSON(messagesStructs.ErrorMessage(err.Error()))
 			}
 		}
 	}
@@ -46,7 +52,7 @@ func (self *storage) processError(user *structs.User, err interface{}) {
 	default:
 		message = "Something wrong"
 	}
-	user.GetConn().WriteJSON(errors.New(message))
+	user.GetConn().WriteJSON(messagesStructs.ErrorMessage(message))
 	user.GetConn().Close()
 	self.remove(user, false)
 }

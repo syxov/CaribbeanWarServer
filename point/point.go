@@ -1,4 +1,4 @@
-package structs
+package point
 
 type Point2D struct {
 	X float64 `json:"x"`

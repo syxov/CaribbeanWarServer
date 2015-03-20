@@ -7,6 +7,7 @@
 package auth
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -44,16 +45,16 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 				conn.Close()
 			}
 		}()
-		var data structs.Message
+		var data messagesStructs.Message
 		go ping(conn)
 		if err := conn.ReadJSON(&data); err != nil {
-			panic(structs.ErrorMessage(err.Error()))
+			panic(messagesStructs.ErrorMessage(err.Error()))
 		}
 		if data.Action != "auth" {
-			panic(structs.ErrorMessage("User do not logged"))
+			panic(messagesStructs.ErrorMessage("User do not logged"))
 		}
-		if authorized := auth(data.Details, conn); !authorized {
-			panic(structs.ErrorMessage("User do not added"))
+		if authorized := auth(data.Details.(map[string]interface{}), conn); !authorized {
+			panic(messagesStructs.ErrorMessage("User do not added"))
 		}
 	}
 }

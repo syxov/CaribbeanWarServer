@@ -1,6 +1,7 @@
 package world
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"time"
 )
@@ -37,7 +38,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 	addedGamers, removedGamers := <-addedGamersChanel, <-removedGamersChanel
 	if len(addedGamers) != 0 || len(removedGamers) != 0 {
 		user.NearestUsers = nearestUsers
-		user.GetConn().WriteJSON(structs.Message{"neighbours", map[string]interface{}{
+		user.GetConn().WriteJSON(messagesStructs.Message{"neighbours", map[string]interface{}{
 			"added":   addedGamers,
 			"removed": removedGamers,
 		}})

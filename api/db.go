@@ -1,6 +1,7 @@
 package api
 
 import (
+	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/structs"
 	"database/sql"
 	_ "github.com/lib/pq"
@@ -68,7 +69,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		Email:         email,
 		Cash:          cash,
 		Nick:          nick,
-		Location:      &structs.Point2D{coordinateX, coordinateY},
+		Location:      &point.Point2D{coordinateX, coordinateY},
 		Ships:         ships,
 		RotationAngle: rotation,
 	}, nil

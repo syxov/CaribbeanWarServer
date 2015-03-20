@@ -1,6 +1,7 @@
 package harbor
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"CaribbeanWarServer/world"
 	"errors"
@@ -73,14 +74,14 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 			self.Remove(user.ID)
 		}
 	}()
-	var data structs.Message
+	var data messagesStructs.Message
 	if err := user.GetConn().ReadJSON(&data); err != nil {
 		panic(err)
 	}
 	if data.Action != "enterWorld" {
 		panic("Unrecognized action")
 	}
-	shipId := parseShipId(data.Details)
+	shipId := parseShipId(data.Details.(map[string]interface{}))
 	selectedShip := findShipById(user.Ships, shipId)
 	if selectedShip == nil {
 		panic("Unrecognized ship")
@@ -88,7 +89,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 	user.SelectedShip = selectedShip
 	world.Add(user)
 	user.Lock()
-	user.GetConn().WriteJSON(structs.Message{"enterWorld", map[string]interface{}{
+	user.GetConn().WriteJSON(messagesStructs.Message{"enterWorld", map[string]interface{}{
 		"success":      true,
 		"nearestUsers": user.NearestUsers,
 		"shipInfo":     user.SelectedShip,
@@ -99,7 +100,7 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 }
 
 func (self *harborStruct) sendErrorMessage(conn *structs.Connection, err string) {
-	conn.WriteJSON(structs.ErrorMessage(err))
+	conn.WriteJSON(messagesStructs.ErrorMessage(err))
 }
 
 func parseShipId(data map[string]interface{}) uint {

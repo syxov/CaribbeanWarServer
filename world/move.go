@@ -1,20 +1,23 @@
 package world
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"time"
 )
 
-func (self *storage) move(user *structs.User, data map[string]interface{}) {
-	moveType := data["type"].(string)
-	user.SetMove(moveType)
+func (self *storage) move(user *structs.User, data messagesStructs.MoveIncome) {
+	user.SetMove(data.Details.Type)
 	user.Lock()
-	sendData := structs.Message{"move", map[string]interface{}{
-		"id":       user.ID,
-		"type":     moveType,
-		"location": user.Location,
-		"alpha":    user.RotationAngle,
-	}}
+	sendData := messagesStructs.MoveOutcome{
+		Action: "move",
+		Details: messagesStructs.MoveOutcomeDetails{
+			ID:       user.ID,
+			Type:     data.Details.Type,
+			Location: user.Location,
+			Alpha:    user.RotationAngle,
+		},
+	}
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(sendData)
 	}

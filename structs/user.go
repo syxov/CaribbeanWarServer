@@ -1,6 +1,8 @@
 package structs
 
 import (
+	"CaribbeanWarServer/messagesStructs"
+	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/rtree"
 	"math"
 	"sync"
@@ -19,24 +21,24 @@ type sailsModeType int8
 type rotationType int8
 
 type NearestUser struct {
-	ID            *uint       `json:"id"`
-	Conn          *Connection `json:"-"`
-	Ship          *Ship       `json:"ship"`
-	Nick          *string     `json:"nick"`
-	Location      *Point2D    `json:"location"`
-	RotationAngle float64     `json:"alpha"`
+	ID            *uint          `json:"id"`
+	Conn          *Connection    `json:"-"`
+	Ship          *Ship          `json:"ship"`
+	Nick          *string        `json:"nick"`
+	Location      *point.Point2D `json:"location"`
+	RotationAngle float64        `json:"alpha"`
 }
 
 type User struct {
-	ID                uint          `json:"id"`
-	Email             string        `json:"email"`
-	Nick              string        `json:"nick"`
-	Cash              uint          `json:"cash"`
-	Location          *Point2D      `json:"location"`
-	Ships             []Ship        `json:"ships"`
-	SelectedShip      *Ship         `json:"selectedShip"`
-	NearestUsers      []NearestUser `json:"nearestUsers"`
-	RotationAngle     float64       `json:"alpha"`
+	ID                uint           `json:"id"`
+	Email             string         `json:"email"`
+	Nick              string         `json:"nick"`
+	Cash              uint           `json:"cash"`
+	Location          *point.Point2D `json:"location"`
+	Ships             []Ship         `json:"ships"`
+	SelectedShip      *Ship          `json:"selectedShip"`
+	NearestUsers      []NearestUser  `json:"nearestUsers"`
+	RotationAngle     float64        `json:"alpha"`
 	conn              *Connection
 	inWorld           atomic.Value
 	sailsMode         sailsModeType
@@ -68,7 +70,7 @@ func (self *User) SetMove(moveType string) {
 	case "none":
 		self.rotationDirection = none
 	default:
-		self.GetConn().WriteJSON(ErrorMessage("ERRORS_UNKNOWN_ACTION"))
+		self.GetConn().WriteJSON(messagesStructs.ErrorMessage("ERRORS_UNKNOWN_ACTION"))
 	}
 }
 
@@ -80,7 +82,7 @@ func (self *User) UpdatePosition(delta float64) {
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
-		self.GetConn().WriteJSON(Message{"position", map[string]interface{}{
+		self.GetConn().WriteJSON(messagesStructs.Message{"position", map[string]interface{}{
 			"x":     self.Location.X,
 			"y":     self.Location.Y,
 			"alpha": self.RotationAngle,

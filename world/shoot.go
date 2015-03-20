@@ -1,30 +1,33 @@
 package world
 
 import (
+	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"time"
 )
 
-func (self *storage) shoot(user *structs.User, details map[string]interface{}) {
+func (self *storage) shoot(user *structs.User, incomeMessage messagesStructs.ShootIncome) {
 	defer func() {
 		sendErrorMessage(user, recover())
 	}()
-	position := details["location"].(map[string]interface{})
-	angle := details["angle"].(float64)
-	direction := details["direction"].(float64)
+	details := incomeMessage.Details
 	user.Lock()
-	message := structs.Message{"shoot", map[string]interface{}{
-		"id":       user.ID,
-		"alpha":    user.RotationAngle,
-		"angle":    angle,
-		"location": position,
-	}}
+	message := messagesStructs.ShootOutcome{
+		Action: "shoot",
+		Details: messagesStructs.ShootOutcomeDetails{
+			ID:        user.ID,
+			Alpha:     user.RotationAngle,
+			Angle:     details.Angle,
+			Location:  details.Location,
+			Direction: details.Direction,
+		},
+	}
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(message)
 	}
 	user.Unlock()
 	user.GetConn().WriteJSON(message)
-	core := structs.NewCore(&structs.Point3D{position["x"].(float64), position["y"].(float64), position["z"].(float64)}, angle, direction, user.ID)
+	core := structs.NewCore(&details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
 	go self.updateCore(core, user)
 }
 
@@ -42,11 +45,14 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		if len(spatials) == 1 {
 			looser := spatials[0].(*structs.User)
 			looser.Lock()
-			message := structs.Message{"hit", map[string]interface{}{
-				"id":       looser.ID,
-				"location": core.CurrentPosition,
-				"damage":   87,
-			}}
+			message := messagesStructs.Hit{
+				Action: "hit",
+				Details: messagesStructs.HitDetails{
+					ID:       looser.ID,
+					Location: core.CurrentPosition,
+					Damage:   87,
+				},
+			}
 			for _, neigbour := range looser.NearestUsers {
 				neigbour.Conn.WriteJSON(message)
 			}
@@ -65,6 +71,6 @@ func sendErrorMessage(user *structs.User, err interface{}) {
 		case string:
 			message = smth
 		}
-		user.GetConn().WriteJSON(structs.ErrorMessage(message))
+		user.GetConn().WriteJSON(messagesStructs.ErrorMessage(message))
 	}
 }
