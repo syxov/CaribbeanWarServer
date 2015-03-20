@@ -1,4 +1,4 @@
-package structs
+package commonStructs
 
 type Ship struct {
 	ID          uint    `json:"id"`

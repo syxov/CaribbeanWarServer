@@ -7,6 +7,7 @@
 package auth
 
 import (
+	"CaribbeanWarServer/commonStructs"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"github.com/gorilla/websocket"
@@ -38,10 +39,10 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 	harbor = _harbor
 	return func(w http.ResponseWriter, r *http.Request) {
 		_conn, _ := upgrader.Upgrade(w, r, nil)
-		conn := &structs.Connection{Conn: _conn}
+		conn := &commonStructs.Connection{Conn: _conn}
 		defer func() {
 			if err := recover(); err != nil {
-				conn.WriteJSON(err)
+				conn.WriteJSON(messagesStructs.ErrorMessage(err.(error).Error()))
 				conn.Close()
 			}
 		}()
@@ -59,7 +60,7 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 	}
 }
 
-func auth(dataMap map[string]interface{}, conn *structs.Connection) bool {
+func auth(dataMap map[string]interface{}, conn *commonStructs.Connection) bool {
 	added := false
 	message := map[string]interface{}{"action": "auth"}
 	if info, err := db.GetUserInfo(dataMap["login"].(string), dataMap["password"].(string)); err == nil {
@@ -88,7 +89,7 @@ func auth(dataMap map[string]interface{}, conn *structs.Connection) bool {
 
 var message []byte = []byte("{}")
 
-func ping(conn *structs.Connection) {
+func ping(conn *commonStructs.Connection) {
 	for conn.WriteMessage(websocket.TextMessage, message) == nil {
 		time.Sleep(20 * time.Second)
 	}

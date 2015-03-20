@@ -17,8 +17,8 @@ type MoveOutcome struct {
 }
 
 type MoveOutcomeDetails struct {
-	ID       uint           `json:"id"`
-	Type     string         `json:"type"`
-	Alpha    float64        `json:"alpha"`
-	Location *point.Point2D `json:"location"`
+	ID       uint          `json:"id"`
+	Type     string        `json:"type"`
+	Alpha    float64       `json:"alpha"`
+	Location point.Point2D `json:"location"`
 }

@@ -21,8 +21,8 @@ func (self *storage) move(user *structs.User, data messagesStructs.MoveIncome) {
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(sendData)
 	}
-	user.Unlock()
 	user.GetConn().WriteJSON(sendData)
+	user.Unlock()
 }
 
 func (self *storage) movement(user *structs.User) {

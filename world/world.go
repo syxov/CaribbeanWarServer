@@ -40,7 +40,6 @@ func (self *storage) add(user *structs.User) {
 
 func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	user.Lock()
-	defer user.Unlock()
 	user.NearestUsers = nil
 	user.SelectedShip = nil
 	user.SetIsInWorld(false)
@@ -49,4 +48,5 @@ func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	if needAddToHarbor {
 		addToHarbor(user)
 	}
+	user.Unlock()
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"CaribbeanWarServer/commonStructs"
 	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/structs"
 	"database/sql"
@@ -52,10 +53,10 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 	if err != nil {
 		return nil, err
 	}
-	ships := []structs.Ship{}
+	ships := []commonStructs.Ship{}
 	for rows.Next() {
 		rows.Scan(&shipId, &name, &weight, &cannonCount, &speed, &hp)
-		ships = append(ships, structs.Ship{
+		ships = append(ships, commonStructs.Ship{
 			ID:          shipId,
 			Name:        name,
 			Weight:      weight,
@@ -69,7 +70,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		Email:         email,
 		Cash:          cash,
 		Nick:          nick,
-		Location:      &point.Point2D{coordinateX, coordinateY},
+		Location:      point.Point2D{coordinateX, coordinateY},
 		Ships:         ships,
 		RotationAngle: rotation,
 	}, nil

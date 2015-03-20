@@ -25,10 +25,10 @@ func (self *storage) shoot(user *structs.User, incomeMessage messagesStructs.Sho
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(message)
 	}
-	user.Unlock()
-	user.GetConn().WriteJSON(message)
 	core := structs.NewCore(&details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
 	go self.updateCore(core, user)
+	user.Unlock()
+	user.GetConn().WriteJSON(message)
 }
 
 func (self *storage) updateCore(core *structs.Core, user *structs.User) {

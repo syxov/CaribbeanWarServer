@@ -1,4 +1,4 @@
-package structs
+package commonStructs
 
 import (
 	"github.com/gorilla/websocket"
@@ -27,7 +27,5 @@ func (self *Connection) ReadJSON(message interface{}) error {
 }
 
 func (self *Connection) Close() error {
-	self.Lock()
-	defer self.Unlock()
 	return self.Conn.Close()
 }

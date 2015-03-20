@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"CaribbeanWarServer/commonStructs"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/rtree"
@@ -20,26 +21,17 @@ const (
 type sailsModeType int8
 type rotationType int8
 
-type NearestUser struct {
-	ID            *uint          `json:"id"`
-	Conn          *Connection    `json:"-"`
-	Ship          *Ship          `json:"ship"`
-	Nick          *string        `json:"nick"`
-	Location      *point.Point2D `json:"location"`
-	RotationAngle float64        `json:"alpha"`
-}
-
 type User struct {
-	ID                uint           `json:"id"`
-	Email             string         `json:"email"`
-	Nick              string         `json:"nick"`
-	Cash              uint           `json:"cash"`
-	Location          *point.Point2D `json:"location"`
-	Ships             []Ship         `json:"ships"`
-	SelectedShip      *Ship          `json:"selectedShip"`
-	NearestUsers      []NearestUser  `json:"nearestUsers"`
-	RotationAngle     float64        `json:"alpha"`
-	conn              *Connection
+	ID                uint                        `json:"id"`
+	Email             string                      `json:"email"`
+	Nick              string                      `json:"nick"`
+	Cash              uint                        `json:"cash"`
+	Location          point.Point2D               `json:"location"`
+	Ships             []commonStructs.Ship        `json:"ships"`
+	SelectedShip      *commonStructs.Ship         `json:"selectedShip"`
+	NearestUsers      []commonStructs.NearestUser `json:"nearestUsers"`
+	RotationAngle     float64                     `json:"alpha"`
+	conn              *commonStructs.Connection
 	inWorld           atomic.Value
 	sailsMode         sailsModeType
 	speedRatio        float64
@@ -57,7 +49,6 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 
 func (self *User) SetMove(moveType string) {
 	self.Lock()
-	defer self.Unlock()
 	switch moveType {
 	case "upward":
 		self.sailsMode = sailsModeType(math.Min(float64(self.sailsMode+1), 3))
@@ -72,12 +63,13 @@ func (self *User) SetMove(moveType string) {
 	default:
 		self.GetConn().WriteJSON(messagesStructs.ErrorMessage("ERRORS_UNKNOWN_ACTION"))
 	}
+	self.Unlock()
 }
 
 func (self *User) UpdatePosition(delta float64) {
 	self.Lock()
 	ship := self.SelectedShip
-	if ship != nil {
+	if self.SelectedShip != nil {
 		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
@@ -95,11 +87,11 @@ func lerp(start, end, delta float64) float64 {
 	return start + delta*(end-start)
 }
 
-func (self *User) GetConn() *Connection {
+func (self *User) GetConn() *commonStructs.Connection {
 	return self.conn
 }
 
-func (self *User) SetConn(conn *Connection) {
+func (self *User) SetConn(conn *commonStructs.Connection) {
 	self.conn = conn
 }
 

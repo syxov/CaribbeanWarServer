@@ -1,6 +1,7 @@
 package harbor
 
 import (
+	"CaribbeanWarServer/commonStructs"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/structs"
 	"CaribbeanWarServer/world"
@@ -39,10 +40,10 @@ func (self *harborStruct) Add(user *structs.User) error {
 
 func (self *harborStruct) Remove(id uint) {
 	self.Lock()
-	defer self.Unlock()
 	if index, err := self.indexOf(id); err == nil {
 		self.harbor = append(self.harbor[:index], self.harbor[index+1:]...)
 	}
+	self.Unlock()
 }
 
 func (self *harborStruct) exist(id uint) bool {
@@ -89,17 +90,20 @@ func (self *harborStruct) waitForShipSelection(user *structs.User) {
 	user.SelectedShip = selectedShip
 	world.Add(user)
 	user.Lock()
-	user.GetConn().WriteJSON(messagesStructs.Message{"enterWorld", map[string]interface{}{
-		"success":      true,
-		"nearestUsers": user.NearestUsers,
-		"shipInfo":     user.SelectedShip,
-		"location":     user.Location,
-	}})
+	user.GetConn().WriteJSON(messagesStructs.EnterWorld{
+		Action: "enterWorld",
+		Details: messagesStructs.EnterWorldDetails{
+			Success:      true,
+			NearestUsers: user.NearestUsers,
+			ShipInfo:     *user.SelectedShip,
+			Location:     user.Location,
+		},
+	})
 	user.Unlock()
 	self.Remove(user.ID)
 }
 
-func (self *harborStruct) sendErrorMessage(conn *structs.Connection, err string) {
+func (self *harborStruct) sendErrorMessage(conn *commonStructs.Connection, err string) {
 	conn.WriteJSON(messagesStructs.ErrorMessage(err))
 }
 
@@ -114,7 +118,7 @@ func parseShipId(data map[string]interface{}) uint {
 	return 0
 }
 
-func findShipById(ships []structs.Ship, shipId uint) *structs.Ship {
+func findShipById(ships []commonStructs.Ship, shipId uint) *commonStructs.Ship {
 	for _, value := range ships {
 		if value.ID == shipId {
 			return &value
