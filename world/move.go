@@ -26,7 +26,7 @@ func (self *storage) move(user *structs.User, data messagesStructs.MoveIncome) {
 }
 
 func (self *storage) movement(user *structs.User) {
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(1000 / 60 * time.Millisecond)
 	for user.IsInWorld() {
 		timeStamp := time.Now().UnixNano()
 		<-ticker.C

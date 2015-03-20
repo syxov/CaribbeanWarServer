@@ -132,9 +132,6 @@ func NewRect(p Point, lengths []float64) *Rect {
 	r.p = p
 	r.q = make([]float64, len(p))
 	for i := range p {
-		if lengths[i] <= 0 {
-			return nil
-		}
 		r.q[i] = p[i] + lengths[i]
 	}
 	return r
