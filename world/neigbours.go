@@ -43,6 +43,8 @@ func (self *storage) findNeigbours(user *structs.User) {
 		}})
 		user.Unlock()
 	}
+	close(addedGamersChanel)
+	close(removedGamersChanel)
 }
 
 func (self *storage) findNeigboursRepeater(user *structs.User) {
