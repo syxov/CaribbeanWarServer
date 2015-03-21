@@ -22,15 +22,15 @@ func (self *storage) message(user *structs.User) {
 				self.remove(user, true)
 				return
 			case "chat":
-				self.chat(&message)
+				go self.chat(&message)
 			case "move":
 				var moveMessage messagesStructs.MoveIncome
 				json.Unmarshal(marshaled, &moveMessage)
-				self.move(user, moveMessage)
+				go self.move(user, moveMessage)
 			case "shoot":
 				var shootMessage messagesStructs.ShootIncome
 				json.Unmarshal(marshaled, &shootMessage)
-				self.shoot(user, shootMessage)
+				go self.shoot(user, shootMessage)
 			default:
 				user.GetConn().WriteJSON(messagesStructs.ErrorMessage("unrecognized action " + message.Action))
 			}
