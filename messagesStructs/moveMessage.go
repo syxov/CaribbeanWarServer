@@ -22,3 +22,14 @@ type MoveOutcomeDetails struct {
 	Alpha    float64       `json:"alpha"`
 	Location point.Point2D `json:"location"`
 }
+
+type PositionMessage struct {
+	Message
+	Details PositionMessageDetails `json:"details"`
+}
+
+type PositionMessageDetails struct {
+	X     float64 `json:"x"`
+	Y     float64 `json:"y"`
+	Alpha float64 `json:"alpha"`
+}

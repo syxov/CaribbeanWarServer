@@ -69,11 +69,16 @@ func (self *User) UpdatePosition(delta float64) {
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
-		self.GetConn().WriteJSON(messagesStructs.Message{"position", map[string]interface{}{
-			"x":     self.Location.X,
-			"y":     self.Location.Y,
-			"alpha": self.RotationAngle,
-		}})
+		self.GetConn().WriteJSON(messagesStructs.PositionMessage{
+			Message: messagesStructs.Message{
+				Action: "position",
+			},
+			Details: messagesStructs.PositionMessageDetails{
+				X:     self.Location.X,
+				Y:     self.Location.Y,
+				Alpha: self.RotationAngle,
+			},
+		})
 	}
 	self.Unlock()
 }
