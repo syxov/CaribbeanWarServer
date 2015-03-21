@@ -60,14 +60,13 @@ type Spatial interface {
 // Spatial Searching" by A. Guttman, Proceedings of ACM SIGMOD, p. 47-57, 1984.
 func (tree *Rtree) Insert(obj Spatial) {
 	e := entry{obj.Bounds(), nil, obj}
+	tree.Lock()
 	tree.insert(e, 1)
-	//	atomic.AddInt32(&tree.size, 1)
+	tree.Unlock()
 }
 
 // insert adds the specified entry to the tree at the specified level.
 func (tree *Rtree) insert(e entry, level int) {
-	tree.Lock()
-	defer tree.Unlock()
 	leaf := tree.chooseNode(tree.root, e, level)
 	leaf.entries = append(leaf.entries, e)
 
@@ -160,13 +159,12 @@ func (n *node) getEntry() *entry {
 }
 
 // computeBoundingBox finds the MBR of the children of n.
-func (n *node) computeBoundingBox() (bb *Rect) {
+func (n *node) computeBoundingBox() *Rect {
 	childBoxes := make([]*Rect, len(n.entries))
 	for i, e := range n.entries {
 		childBoxes[i] = e.bb
 	}
-	bb = boundingBoxN(childBoxes...)
-	return
+	return boundingBoxN(childBoxes...)
 }
 
 // split splits a node into two groups while attempting to minimize the
@@ -265,8 +263,10 @@ func assignGroup(e entry, left, right *node) {
 func (n *node) pickSeeds() (int, int) {
 	left, right := 0, 1
 	maxWastedSpace := -1.0
+	l := len(n.entries)
 	for i, e1 := range n.entries {
-		for j, e2 := range n.entries[i+1:] {
+		for j := i + 1; j < l; j++ {
+			e2 := n.entries[j]
 			d := boundingBox(e1.bb, e2.bb).size - e1.bb.size - e2.bb.size
 			if d > maxWastedSpace {
 				maxWastedSpace = d
@@ -400,7 +400,7 @@ func (tree *Rtree) condenseTree(n *node) {
 func (tree *Rtree) SearchIntersect(bb *Rect) []Spatial {
 	tree.Lock()
 	defer tree.Unlock()
-	return tree.searchIntersect(-1, tree.root, bb)
+	return tree.searchIntersectWithoutLimit(tree.root, bb)
 }
 
 // SearchIntersectWithLimit is similar to SearchIntersect, but returns
@@ -410,6 +410,20 @@ func (tree *Rtree) SearchIntersectWithLimit(k int, bb *Rect) []Spatial {
 	tree.Lock()
 	defer tree.Unlock()
 	return tree.searchIntersect(k, tree.root, bb)
+}
+
+func (tree *Rtree) searchIntersectWithoutLimit(n *node, bb *Rect) []Spatial {
+	results := []Spatial{}
+	for _, e := range n.entries {
+		if intersect(e.bb, bb) != nil {
+			if n.leaf {
+				results = append(results, e.obj)
+			} else {
+				results = append(results, tree.searchIntersectWithoutLimit(e.child, bb)...)
+			}
+		}
+	}
+	return results
 }
 
 func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect) []Spatial {
@@ -520,8 +534,8 @@ func (tree *Rtree) NearestNeighbors(k int, p Point) []Spatial {
 		objs[i] = nil
 	}
 	tree.Lock()
-	defer tree.Unlock()
 	objs, _ = tree.nearestNeighbors(k, p, tree.root, dists, objs)
+	tree.Unlock()
 	return objs
 }
 

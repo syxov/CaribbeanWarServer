@@ -18,9 +18,6 @@ const (
 	velocity   = 0.01
 )
 
-type sailsModeType int8
-type rotationType int8
-
 type User struct {
 	ID                uint                       `json:"id"`
 	Email             string                     `json:"email"`
@@ -33,9 +30,9 @@ type User struct {
 	RotationAngle     float64                    `json:"alpha"`
 	conn              *commonStructs.Connection
 	inWorld           atomic.Value
-	sailsMode         sailsModeType
+	sailsMode         int32
 	speedRatio        float64
-	rotationDirection rotationType
+	rotationDirection int32
 	sync.Mutex
 }
 
@@ -48,28 +45,26 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 }
 
 func (self *User) SetMove(moveType string) {
-	self.Lock()
 	switch moveType {
 	case "upward":
-		self.sailsMode = sailsModeType(math.Min(float64(self.sailsMode+1), 3))
+		atomic.StoreInt32(&self.sailsMode, int32(math.Min(float64(self.sailsMode+1), 3)))
 	case "backward":
-		self.sailsMode = sailsModeType(math.Max(float64(self.sailsMode-1), 0))
+		atomic.StoreInt32(&self.sailsMode, int32(math.Max(float64(self.sailsMode-1), 0)))
 	case "left":
-		self.rotationDirection = left
+		atomic.StoreInt32(&self.rotationDirection, left)
 	case "right":
-		self.rotationDirection = right
+		atomic.StoreInt32(&self.rotationDirection, right)
 	case "none":
-		self.rotationDirection = none
+		atomic.StoreInt32(&self.rotationDirection, none)
 	default:
 		self.GetConn().WriteJSON(messagesStructs.ErrorMessage("ERRORS_UNKNOWN_ACTION"))
 	}
-	self.Unlock()
 }
 
 func (self *User) UpdatePosition(delta float64) {
 	self.Lock()
 	ship := self.SelectedShip
-	if self.SelectedShip != nil {
+	if ship != nil {
 		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
