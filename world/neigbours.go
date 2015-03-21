@@ -12,24 +12,21 @@ const radius = 100000
 
 func (self *storage) findNeigbours(user *structs.User) {
 	user.Lock()
-	if user.NearestUsers == nil {
-		user.NearestUsers = make(commonStructs.NearestUsers, 0, 5)
-	}
 	rect := user.Bounds(radius)
 	user.Unlock()
 	spatials := self.ocean.SearchIntersect(rect)
-	nearestUsers := make(commonStructs.NearestUsers, 0, len(spatials))
-	for _, value := range spatials {
+	nearestUsers := make(commonStructs.NearestUsers, len(spatials))
+	for index, value := range spatials {
 		convertedValue := value.(*structs.User)
 		if convertedValue.ID != user.ID {
-			nearestUsers = append(nearestUsers, commonStructs.NearestUser{
+			nearestUsers[index] = commonStructs.NearestUser{
 				ID:            convertedValue.ID,
 				Conn:          convertedValue.GetConn(),
 				Ship:          convertedValue.SelectedShip,
 				Nick:          convertedValue.Nick,
 				Location:      convertedValue.Location,
 				RotationAngle: convertedValue.RotationAngle,
-			})
+			}
 		}
 	}
 	sort.Sort(&nearestUsers)
@@ -58,7 +55,7 @@ func (self *storage) findNeigboursRepeater(user *structs.User) {
 func getDifference(p_firstSlice, p_secondSlice *commonStructs.NearestUsers, channel chan commonStructs.NearestUsers) {
 	firstSlice := *p_firstSlice
 	secondSlice := *p_secondSlice
-	difference := make(commonStructs.NearestUsers, 0, 10)
+	difference := make(commonStructs.NearestUsers, 0, 3)
 	for _, firstSliceUser := range firstSlice {
 		if index := sort.Search(len(secondSlice), func(j int) bool { return firstSliceUser.ID == secondSlice[j].ID }); index >= 0 && index < len(secondSlice) {
 			difference = append(difference, firstSliceUser)

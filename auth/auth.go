@@ -42,7 +42,7 @@ func Handler(_db DbConnection, _harbor Harbor) func(w http.ResponseWriter, r *ht
 		conn := &commonStructs.Connection{Conn: _conn}
 		defer func() {
 			if err := recover(); err != nil {
-				conn.WriteJSON(messagesStructs.ErrorMessage(err.(error).Error()))
+				conn.WriteJSON(err)
 				conn.Close()
 			}
 		}()

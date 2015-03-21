@@ -8,25 +8,8 @@ import (
 	"math"
 )
 
-// DistError is an improper distance measurement.  It implements the error
-// and is generated when a distance-related assertion fails.
-type DistError float64
-
-func (err DistError) Error() string {
-	return "rtreego: improper distance"
-}
-
 // Point represents a point in n-dimensional Euclidean space.
 type Point []float64
-
-// Dist computes the Euclidean distance between two points p and q.
-func (p Point) dist(q Point) float64 {
-	sum := 0.0
-	for i := range p {
-		sum += math.Pow(p[i]-q[i], 2)
-	}
-	return math.Sqrt(sum)
-}
 
 // minDist computes the square of the distance from a point to a rectangle.
 // If the point is contained in the rectangle then the distance is zero.
@@ -97,31 +80,7 @@ func (p Point) minMaxDist(r *Rect) float64 {
 // [a1, b1] x [a2, b2] x ... x [an, bn], where ai < bi for all 1 <= i <= n.
 type Rect struct {
 	p, q Point // Enforced by NewRect: p[i] <= q[i] for all i.
-}
-
-// The coordinate of the point of the rectangle at i
-func (r *Rect) PointCoord(i int) float64 {
-	return r.p[i]
-}
-
-// The coordinate of the lengths of the rectangle at i
-func (r *Rect) LengthsCoord(i int) float64 {
-	return r.q[i] - r.p[i]
-}
-
-// Returns true if the two rectangles are equal
-func (r *Rect) Equal(other *Rect) bool {
-	for i, e := range r.p {
-		if e != other.p[i] {
-			return false
-		}
-	}
-	for i, e := range r.q {
-		if e != other.q[i] {
-			return false
-		}
-	}
-	return true
+	size float64
 }
 
 // NewRect constructs and returns a pointer to a Rect given a corner point and
@@ -130,51 +89,11 @@ func (r *Rect) Equal(other *Rect) bool {
 func NewRect(p Point, lengths []float64) *Rect {
 	r := new(Rect)
 	r.p = p
-	r.q = make([]float64, len(p))
-	for i := range p {
-		r.q[i] = p[i] + lengths[i]
-	}
+	r.q = make([]float64, 2, 2)
+	r.q[0] = p[0] + lengths[0]
+	r.q[1] = p[1] + lengths[1]
+	r.size = (r.q[0] - r.p[0]) * (r.q[1] - r.p[1])
 	return r
-}
-
-// size computes the measure of a rectangle (the product of its side lengths).
-func (r *Rect) size() float64 {
-	size := 1.0
-	for i, a := range r.p {
-		size *= r.q[i] - a
-	}
-	return size
-}
-
-// margin computes the sum of the edge lengths of a rectangle.
-func (r *Rect) margin() float64 {
-	// The number of edges in an n-dimensional rectangle is n * 2^(n-1)
-	// (http://en.wikipedia.org/wiki/Hypercube_graph).  Thus the number
-	// of edges of length (ai - bi), where the rectangle is determined
-	// by p = (a1, a2, ..., an) and q = (b1, b2, ..., bn), is 2^(n-1).
-	//
-	// The margin of the rectangle, then, is given by the formula
-	// 2^(n-1) * [(b1 - a1) + (b2 - a2) + ... + (bn - an)].
-	dim := len(r.p)
-	sum := 0.0
-	for i, a := range r.p {
-		b := r.q[i]
-		sum += b - a
-	}
-	return math.Pow(2, float64(dim-1)) * sum
-}
-
-// containsPoint tests whether p is located inside or on the boundary of r.
-func (r *Rect) containsPoint(p Point) bool {
-	for i, a := range p {
-		// p is contained in (or on) r if and only if p <= a <= q for
-		// every dimension.
-		if a < r.p[i] || a > r.q[i] {
-			return false
-		}
-	}
-
-	return true
 }
 
 // containsRect tests whether r2 is is located inside r1.
@@ -194,9 +113,9 @@ func (r1 *Rect) containsRect(r2 *Rect) bool {
 
 // intersect computes the intersection of two rectangles.  If no intersection
 // exists, the intersection is nil.
-func intersect(r1, r2 *Rect) *Rect {
-	dim := len(r1.p)
+const dim = 2
 
+func intersect(r1, r2 *Rect) *Rect {
 	// There are four cases of overlap:
 	//
 	//     1.  a1------------b1
@@ -236,26 +155,23 @@ func intersect(r1, r2 *Rect) *Rect {
 		p[i] = math.Max(a1, a2)
 		q[i] = math.Min(b1, b2)
 	}
-	return &Rect{p, q}
+	return NewRect(p, q)
 }
 
 // ToRect constructs a rectangle containing p with side lengths 2*tol.
 func (p Point) ToRect(tol float64) *Rect {
-	dim := len(p)
 	a, b := make([]float64, dim), make([]float64, dim)
 	for i := range p {
 		a[i] = p[i] - tol
 		b[i] = p[i] + tol
 	}
-	return &Rect{a, b}
+	return NewRect(a, b)
 }
 
 // boundingBox constructs the smallest rectangle containing both r1 and r2.
 func boundingBox(r1, r2 *Rect) (bb *Rect) {
 	bb = new(Rect)
-	dim := len(r1.p)
-	bb.p = make([]float64, dim)
-	bb.q = make([]float64, dim)
+	bb.p, bb.q = make([]float64, dim), make([]float64, dim)
 	for i := 0; i < dim; i++ {
 		if r1.p[i] <= r2.p[i] {
 			bb.p[i] = r1.p[i]

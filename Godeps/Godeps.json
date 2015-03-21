@@ -11,14 +11,6 @@
 			"Rev": "c6325123e6d45115749734a8bc35060ebac74d0e"
 		},
 		{
-			"ImportPath": "github.com/pquerna/ffjson/ffjson",
-			"Rev": "87e8e39fdfc8a3e4967b26b7321a520b9d4e9e71"
-		},
-		{
-			"ImportPath": "github.com/pquerna/ffjson/fflib/v1",
-			"Rev": "87e8e39fdfc8a3e4967b26b7321a520b9d4e9e71"
-		},
-		{
 			"ImportPath": "github.com/zond/gotomic",
 			"Rev": "5b217c5578228ff3979c9f9459959176fb54c388"
 		}
