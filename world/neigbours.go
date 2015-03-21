@@ -12,6 +12,9 @@ const radius = 100000
 
 func (self *storage) findNeigbours(user *structs.User) {
 	user.Lock()
+	if user.NearestUsers == nil {
+		user.NearestUsers = make(commonStructs.NearestUsers, 0)
+	}
 	rect := user.Bounds(radius)
 	user.Unlock()
 	spatials := self.ocean.SearchIntersect(rect)

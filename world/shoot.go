@@ -44,7 +44,6 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		spatials := self.ocean.SearchIntersectWithLimit(1, core.GetBounds())
 		if len(spatials) == 1 {
 			looser := spatials[0].(*structs.User)
-			looser.Lock()
 			message := messagesStructs.Hit{
 				Action: "hit",
 				Details: messagesStructs.HitDetails{
@@ -53,6 +52,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 					Damage:   87,
 				},
 			}
+			looser.Lock()
 			for _, neigbour := range looser.NearestUsers {
 				neigbour.Conn.WriteJSON(message)
 			}
