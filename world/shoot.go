@@ -53,6 +53,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 				},
 			}
 			looser.Lock()
+			looser.GetConn().WriteJSON(message)
 			for _, neigbour := range looser.NearestUsers {
 				neigbour.Conn.WriteJSON(message)
 			}

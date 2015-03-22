@@ -32,7 +32,7 @@ type Hit struct {
 }
 
 type HitDetails struct {
-	ID       uint
-	Location point.Point3D
-	Damage   uint
+	ID       uint          `json:"id"`
+	Location point.Point3D `json:"location"`
+	Damage   uint          `json:"damage"`
 }
