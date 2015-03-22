@@ -41,7 +41,7 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 	if len(radius) != 0 {
 		value = radius[0]
 	}
-	return rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value})
+	return rtree.NewRect(rtree.Point{self.Location.X - value/2, self.Location.Y - value/2}, []float64{value, value}, self.RotationAngle)
 }
 
 func (self *User) SetMove(moveType string) {

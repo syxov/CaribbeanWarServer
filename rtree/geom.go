@@ -79,20 +79,24 @@ func (p Point) minMaxDist(r *Rect) float64 {
 // Rect represents a subset of n-dimensional Euclidean space of the form
 // [a1, b1] x [a2, b2] x ... x [an, bn], where ai < bi for all 1 <= i <= n.
 type Rect struct {
-	p, q Point // Enforced by NewRect: p[i] <= q[i] for all i.
-	size float64
+	p, q  Point // Enforced by NewRect: p[i] <= q[i] for all i.
+	angle float64
+	size  float64
 }
 
 // NewRect constructs and returns a pointer to a Rect given a corner point and
 // the lengths of each dimension.  The point p should be the most-negative point
 // on the rectangle (in every dimension) and every length should be positive.
-func NewRect(p Point, lengths []float64) *Rect {
+func NewRect(p Point, lengths []float64, angle ...float64) *Rect {
 	r := new(Rect)
 	r.p = p
 	r.q = make([]float64, 2, 2)
 	r.q[0] = p[0] + lengths[0]
 	r.q[1] = p[1] + lengths[1]
 	r.size = (r.q[0] - r.p[0]) * (r.q[1] - r.p[1])
+	if len(angle) != 0 {
+		r.angle = angle[0]
+	}
 	return r
 }
 
@@ -109,6 +113,52 @@ func (r1 *Rect) containsRect(r2 *Rect) bool {
 	}
 
 	return true
+}
+
+type point struct {
+	x, y float64
+}
+
+type rectangle []point
+
+const length = 4
+
+// containsRect tests whether r2 is is located inside r1.
+func (r1 *Rect) intersectRect(r2 *Rect) bool {
+	rect1, rect2 := *(r1.toRectangle()), *(r2.toRectangle())
+	for _, p := range rect1 {
+		inReactangle := true
+		ali := align(&rect2[0], &rect2[1], &p)
+		for i := 1; i < length; i++ {
+			ali_t := align(&rect2[i], &rect2[(i+1)%length], &p)
+			if math.Copysign(ali_t, ali) != ali_t {
+				inReactangle = false
+				break
+			}
+		}
+		if inReactangle {
+			return true
+		}
+	}
+	return false
+}
+
+func align(a, b, c *point) float64 {
+	return a.x*(b.y-c.y) + a.y*(c.x-b.x) + b.x*c.y - c.x*b.y
+}
+
+func (self *Rect) toRectangle() *rectangle {
+	return &rectangle{
+		rotatePoint(&point{x: self.p[0], y: self.p[1]}, self.angle),
+		rotatePoint(&point{x: self.p[0] + self.q[0], y: self.p[1]}, self.angle),
+		rotatePoint(&point{x: self.p[0] + self.q[0], y: self.p[1] + self.q[1]}, self.angle),
+		rotatePoint(&point{x: self.p[0], y: self.p[1] + self.q[1]}, self.angle),
+	}
+
+}
+
+func rotatePoint(p *point, angle float64) point {
+	return point{x: p.x*math.Cos(angle) - p.y*math.Sin(angle), y: p.x*math.Sin(angle) + p.y*math.Cos(angle)}
 }
 
 // intersect computes the intersection of two rectangles.  If no intersection

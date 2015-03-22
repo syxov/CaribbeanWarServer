@@ -417,7 +417,9 @@ func (tree *Rtree) searchIntersectWithoutLimit(n *node, bb *Rect) []Spatial {
 	for _, e := range n.entries {
 		if intersect(e.bb, bb) != nil {
 			if n.leaf {
-				results = append(results, e.obj)
+				if e.bb.intersectRect(bb) {
+					results = append(results, e.obj)
+				}
 			} else {
 				results = append(results, tree.searchIntersectWithoutLimit(e.child, bb)...)
 			}
@@ -435,7 +437,9 @@ func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect) []Spatial {
 
 		if intersect(e.bb, bb) != nil {
 			if n.leaf {
-				results = append(results, e.obj)
+				if e.bb.intersectRect(bb) {
+					results = append(results, e.obj)
+				}
 			} else {
 				margin := k - len(results)
 				results = append(results, tree.searchIntersect(margin, e.child, bb)...)
@@ -449,8 +453,8 @@ func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect) []Spatial {
 // Implemented per "Nearest Neighbor Queries" by Roussopoulos et al
 func (tree *Rtree) NearestNeighbor(p Point) Spatial {
 	tree.Lock()
-	defer tree.Unlock()
 	obj, _ := tree.nearestNeighbor(p, tree.root, math.MaxFloat64, nil)
+	tree.Unlock()
 	return obj
 }
 
