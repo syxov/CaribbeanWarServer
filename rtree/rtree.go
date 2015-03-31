@@ -406,10 +406,12 @@ func (tree *Rtree) SearchIntersect(bb *Rect) []Spatial {
 // SearchIntersectWithLimit is similar to SearchIntersect, but returns
 // immediately when the first k results are found. A negative k behaves exactly
 // like SearchIntersect and returns all the results.
-func (tree *Rtree) SearchIntersectWithLimit(k int, bb *Rect) []Spatial {
+type filterFn func(*Spatial) bool
+
+func (tree *Rtree) SearchIntersectWithLimit(k int, bb *Rect, filter filterFn) []Spatial {
 	tree.Lock()
 	defer tree.Unlock()
-	return tree.searchIntersect(k, tree.root, bb)
+	return tree.searchIntersect(k, tree.root, bb, filter)
 }
 
 func (tree *Rtree) searchIntersectWithoutLimit(n *node, bb *Rect) []Spatial {
@@ -428,21 +430,21 @@ func (tree *Rtree) searchIntersectWithoutLimit(n *node, bb *Rect) []Spatial {
 	return results
 }
 
-func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect) []Spatial {
+func (tree *Rtree) searchIntersect(k int, n *node, bb *Rect, filter filterFn) []Spatial {
 	results := []Spatial{}
 	for _, e := range n.entries {
-		if k >= 0 && len(results) >= k {
+		if len(results) >= k {
 			break
 		}
 
 		if intersect(e.bb, bb) != nil {
 			if n.leaf {
-				if e.bb.intersectRect(bb) {
+				if e.bb.intersectRect(bb) && (filter == nil || filter(&e.obj)) {
 					results = append(results, e.obj)
 				}
 			} else {
 				margin := k - len(results)
-				results = append(results, tree.searchIntersect(margin, e.child, bb)...)
+				results = append(results, tree.searchIntersect(margin, e.child, bb, filter)...)
 			}
 		}
 	}

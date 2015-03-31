@@ -18,10 +18,10 @@ type Point []float64
 // N. Roussopoulos, S. Kelley and F. Vincent, ACM SIGMOD, pages 71-79, 1995.
 func (p Point) minDist(r *Rect) (sum float64) {
 	for i, pi := range p {
-		if pi < r.p[i] {
-			sum += math.Pow(pi-r.p[i], 2)
-		} else if pi > r.q[i] {
-			d := math.Pow(pi-r.q[i], 2)
+		if pi < r.P[i] {
+			sum += math.Pow(pi-r.P[i], 2)
+		} else if pi > r.Q[i] {
+			d := math.Pow(pi-r.Q[i], 2)
 			sum += d * d
 		}
 	}
@@ -40,17 +40,17 @@ func (p Point) minMaxDist(r *Rect) float64 {
 	// where rmk and rMk are defined as follows:
 
 	rm := func(k int) float64 {
-		if p[k] <= (r.p[k]+r.q[k])/2 {
-			return r.p[k]
+		if p[k] <= (r.P[k]+r.Q[k])/2 {
+			return r.P[k]
 		}
-		return r.q[k]
+		return r.Q[k]
 	}
 
 	rM := func(k int) float64 {
-		if p[k] >= (r.p[k]+r.q[k])/2 {
-			return r.p[k]
+		if p[k] >= (r.P[k]+r.Q[k])/2 {
+			return r.P[k]
 		}
-		return r.q[k]
+		return r.Q[k]
 	}
 
 	// This formula can be computed in linear time by precomputing
@@ -79,7 +79,7 @@ func (p Point) minMaxDist(r *Rect) float64 {
 // Rect represents a subset of n-dimensional Euclidean space of the form
 // [a1, b1] x [a2, b2] x ... x [an, bn], where ai < bi for all 1 <= i <= n.
 type Rect struct {
-	p, q  Point // Enforced by NewRect: p[i] <= q[i] for all i.
+	P, Q  Point // Enforced by NewRect: p[i] <= q[i] for all i.
 	angle float64
 	size  float64
 }
@@ -89,11 +89,11 @@ type Rect struct {
 // on the rectangle (in every dimension) and every length should be positive.
 func NewRect(p Point, lengths []float64, angle ...float64) *Rect {
 	r := new(Rect)
-	r.p = p
-	r.q = make([]float64, 2, 2)
-	r.q[0] = p[0] + lengths[0]
-	r.q[1] = p[1] + lengths[1]
-	r.size = (r.q[0] - r.p[0]) * (r.q[1] - r.p[1])
+	r.P = p
+	r.Q = make([]float64, 2, 2)
+	r.Q[0] = p[0] + lengths[0]
+	r.Q[1] = p[1] + lengths[1]
+	r.size = (r.Q[0] - r.P[0]) * (r.Q[1] - r.P[1])
 	if len(angle) != 0 {
 		r.angle = angle[0]
 	}
@@ -102,8 +102,8 @@ func NewRect(p Point, lengths []float64, angle ...float64) *Rect {
 
 // containsRect tests whether r2 is is located inside r1.
 func (r1 *Rect) containsRect(r2 *Rect) bool {
-	for i, a1 := range r1.p {
-		b1, a2, b2 := r1.q[i], r2.p[i], r2.q[i]
+	for i, a1 := range r1.P {
+		b1, a2, b2 := r1.Q[i], r2.P[i], r2.Q[i]
 		// enforced by constructor: a1 <= b1 and a2 <= b2.
 		// so containment holds if and only if a1 <= a2 <= b2 <= b1
 		// for every dimension.
@@ -125,7 +125,7 @@ const length = 4
 
 // containsRect tests whether r2 is is located inside r1.
 func (r1 *Rect) intersectRect(r2 *Rect) bool {
-	rect1, rect2 := *(r1.toRectangle()), *(r2.toRectangle())
+	rect1, rect2 := *(r1.ToRectangle()), *(r2.ToRectangle())
 	for _, p := range rect1 {
 		inReactangle := true
 		ali := align(&rect2[0], &rect2[1], &p)
@@ -147,12 +147,12 @@ func align(a, b, c *point) float64 {
 	return a.x*(b.y-c.y) + a.y*(c.x-b.x) + b.x*c.y - c.x*b.y
 }
 
-func (self *Rect) toRectangle() *rectangle {
+func (self *Rect) ToRectangle() *rectangle {
 	return &rectangle{
-		rotatePoint(&point{x: self.p[0], y: self.p[1]}, self.angle),
-		rotatePoint(&point{x: self.p[0] + self.q[0], y: self.p[1]}, self.angle),
-		rotatePoint(&point{x: self.p[0] + self.q[0], y: self.p[1] + self.q[1]}, self.angle),
-		rotatePoint(&point{x: self.p[0], y: self.p[1] + self.q[1]}, self.angle),
+		rotatePoint(&point{x: self.P[0], y: self.P[1]}, self.angle),
+		rotatePoint(&point{x: self.P[0] + self.Q[0], y: self.P[1]}, self.angle),
+		rotatePoint(&point{x: self.P[0] + self.Q[0], y: self.P[1] + self.Q[1]}, self.angle),
+		rotatePoint(&point{x: self.P[0], y: self.P[1] + self.Q[1]}, self.angle),
 	}
 
 }
@@ -198,7 +198,7 @@ func intersect(r1, r2 *Rect) *Rect {
 	p := make([]float64, dim)
 	q := make([]float64, dim)
 	for i := range p {
-		a1, b1, a2, b2 := r1.p[i], r1.q[i], r2.p[i], r2.q[i]
+		a1, b1, a2, b2 := r1.P[i], r1.Q[i], r2.P[i], r2.Q[i]
 		if b2 <= a1 || b1 <= a2 {
 			return nil
 		}
@@ -221,17 +221,17 @@ func (p Point) ToRect(tol float64) *Rect {
 // boundingBox constructs the smallest rectangle containing both r1 and r2.
 func boundingBox(r1, r2 *Rect) (bb *Rect) {
 	bb = new(Rect)
-	bb.p, bb.q = make([]float64, dim), make([]float64, dim)
+	bb.P, bb.Q = make([]float64, dim), make([]float64, dim)
 	for i := 0; i < dim; i++ {
-		if r1.p[i] <= r2.p[i] {
-			bb.p[i] = r1.p[i]
+		if r1.P[i] <= r2.P[i] {
+			bb.P[i] = r1.P[i]
 		} else {
-			bb.p[i] = r2.p[i]
+			bb.P[i] = r2.P[i]
 		}
-		if r1.q[i] <= r2.q[i] {
-			bb.q[i] = r2.q[i]
+		if r1.Q[i] <= r2.Q[i] {
+			bb.Q[i] = r2.Q[i]
 		} else {
-			bb.q[i] = r1.q[i]
+			bb.Q[i] = r1.Q[i]
 		}
 	}
 	return

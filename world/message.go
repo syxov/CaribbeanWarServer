@@ -19,7 +19,7 @@ func (self *storage) message(user *structs.User) {
 			marshaled, _ := json.Marshal(message)
 			switch message.Action {
 			case "exitWorld":
-				self.remove(user, true)
+				go self.remove(user, true)
 				return
 			case "chat":
 				go self.chat(&message)

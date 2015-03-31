@@ -47,9 +47,13 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 func (self *User) SetMove(moveType string) {
 	switch moveType {
 	case "upward":
-		atomic.StoreInt32(&self.sailsMode, int32(math.Min(float64(self.sailsMode+1), 3)))
+		self.Lock()
+		self.sailsMode = int32(math.Min(float64(self.sailsMode+1), 3))
+		self.Unlock()
 	case "backward":
-		atomic.StoreInt32(&self.sailsMode, int32(math.Max(float64(self.sailsMode-1), 0)))
+		self.Lock()
+		self.sailsMode = int32(math.Max(float64(self.sailsMode-1), 0))
+		self.Unlock()
 	case "left":
 		atomic.StoreInt32(&self.rotationDirection, left)
 	case "right":
