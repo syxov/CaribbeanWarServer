@@ -12,14 +12,16 @@ type Connection struct {
 
 func (self *Connection) WriteJSON(message interface{}) error {
 	self.Lock()
-	defer self.Unlock()
-	return self.Conn.WriteJSON(message)
+	err := self.Conn.WriteJSON(message)
+	self.Unlock()
+	return err
 }
 
 func (self *Connection) WriteMessage(messageType int, data []byte) error {
 	self.Lock()
-	defer self.Unlock()
-	return self.Conn.WriteMessage(messageType, data)
+	err := self.Conn.WriteMessage(messageType, data)
+	self.Unlock()
+	return err
 }
 
 func (self *Connection) ReadJSON(message interface{}) error {

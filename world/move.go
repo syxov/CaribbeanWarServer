@@ -37,6 +37,16 @@ func (self *storage) movement(user *structs.User) {
 		if isDeleted {
 			user.UpdatePosition(float64(time.Now().UnixNano()-timeStamp) / float64(time.Second))
 			self.ocean.Insert(user)
+			user.GetConn().WriteJSON(messagesStructs.PositionMessage{
+				Message: messagesStructs.Message{
+					Action: "position",
+				},
+				Details: messagesStructs.PositionMessageDetails{
+					X:     user.Location.X,
+					Y:     user.Location.Y,
+					Alpha: user.RotationAngle,
+				},
+			})
 		}
 	}
 	ticker.Stop()
