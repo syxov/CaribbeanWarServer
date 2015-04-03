@@ -108,5 +108,5 @@ func (self *User) SetIsInWorld(is bool) {
 }
 
 func (self *User) IsMoved() bool {
-	return self.speedRatio < 0.000000001
+	return self.speedRatio >= 0.000000001
 }
