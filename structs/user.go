@@ -106,3 +106,7 @@ func (self *User) IsInWorld() bool {
 func (self *User) SetIsInWorld(is bool) {
 	self.inWorld.Store(is)
 }
+
+func (self *User) IsMoved() bool {
+	return self.speedRatio < 0.000000001
+}

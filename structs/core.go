@@ -13,7 +13,7 @@ type Core struct {
 	time                                             float64
 }
 
-func NewCore(position point.Point3D, alpha, angle, direction float64, ID uint) *Core {
+func NewCore(position point.Point3D, angle, alpha, direction float64, ID uint) *Core {
 	return &Core{
 		StartPosition:    position,
 		CurrentPosition:  position,

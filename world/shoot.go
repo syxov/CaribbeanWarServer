@@ -33,11 +33,11 @@ func (self *storage) shoot(user *structs.User, incomeMessage messagesStructs.Sho
 }
 
 func (self *storage) updateCore(core *structs.Core, user *structs.User) {
+	timer := time.NewTicker(10 * time.Millisecond)
 	defer func() {
+		timer.Stop()
 		sendErrorMessage(user, recover())
 	}()
-	timer := time.NewTicker(10 * time.Millisecond)
-	defer timer.Stop()
 	for !core.UnderWater() {
 		now := time.Now().UnixNano()
 		<-timer.C
