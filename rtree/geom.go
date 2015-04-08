@@ -130,7 +130,7 @@ func (r1 *Rect) intersectRect(r2 *Rect) bool {
 		ali := align(&rect2[0], &rect2[1], &p)
 		for i := 1; i < length; i++ {
 			ali_t := align(&rect2[i], &rect2[(i+1)%length], &p)
-			if math.Copysign(ali_t, ali) != ali_t {
+			if !sameSign(ali_t, ali) {
 				inReactangle = false
 				break
 			}
@@ -140,6 +140,12 @@ func (r1 *Rect) intersectRect(r2 *Rect) bool {
 		}
 	}
 	return false
+}
+
+func sameSign(_x, _y float64) bool {
+	x, y := int(_x), int(_y)
+	t := (x ^ y) >> 31
+	return ((x + t) ^ t) == x
 }
 
 func align(a, b, c *point) float64 {

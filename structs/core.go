@@ -11,10 +11,11 @@ type Core struct {
 	ShipRotationAngle, ShootAngle                    float64
 	ID                                               uint
 	time                                             float64
+	coefX, coefY, coefZ                              float64
 }
 
 func NewCore(position point.Point3D, shipRotationAngle, shootAngle, direction float64, ID uint) *Core {
-	return &Core{
+	core := &Core{
 		StartPosition:     position,
 		CurrentPosition:   position,
 		previousPosition:  position,
@@ -23,6 +24,10 @@ func NewCore(position point.Point3D, shipRotationAngle, shootAngle, direction fl
 		ID:                ID,
 		time:              0,
 	}
+	core.coefX = math.Cos(core.ShootAngle) * math.Cos(math.Pi-core.ShipRotationAngle) * speed
+	core.coefY = math.Cos(core.ShootAngle) * math.Sin(math.Pi-core.ShipRotationAngle) * speed
+	core.coefZ = math.Sin(core.ShootAngle) * speed
+	return core
 }
 
 const speed float64 = 100
@@ -31,9 +36,9 @@ func (self *Core) UpdatePosition(delta float64) {
 	self.time += delta
 	self.previousPosition = self.CurrentPosition
 	self.CurrentPosition = point.Point3D{
-		X: self.StartPosition.X + speed*self.time*math.Cos(self.ShootAngle)*math.Cos(math.Pi-self.ShipRotationAngle),
-		Y: self.StartPosition.Y + speed*self.time*math.Cos(self.ShootAngle)*math.Sin(math.Pi-self.ShipRotationAngle),
-		Z: self.StartPosition.Z + speed*self.time*math.Sin(self.ShootAngle) - 9.8*math.Pow(self.time, 2.0)/2.0,
+		X: self.StartPosition.X + self.time*self.coefX,
+		Y: self.StartPosition.Y + self.time*self.coefY,
+		Z: self.StartPosition.Z + self.time*self.coefZ - 9.8*math.Pow(self.time, 2.0)/2.0,
 	}
 }
 
