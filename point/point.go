@@ -7,6 +7,6 @@ type Point2D struct {
 
 type Point3D struct {
 	X float64 `json:"x"`
-	Y float64 `json:"y"`
-	Z float64 `json:"z"`
+	Y float64 `json:"z"`
+	Z float64 `json:"y"`
 }

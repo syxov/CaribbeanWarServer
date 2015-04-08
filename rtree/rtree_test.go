@@ -6,7 +6,10 @@ import (
 )
 
 func TestIntersection(t *testing.T) {
-	r1, r2 := NewRect(Point{1, 1}, []float64{2, 2}, 0), NewRect(Point{2, 2}, []float64{2, 2}, 0)
+	var (
+		r1, r2 *Rect
+	)
+	r1, r2 = NewRect(Point{1, 1}, []float64{2, 2}, 0), NewRect(Point{2, 2}, []float64{2, 2}, 0)
 	if r1.intersectRect(r2) == false {
 		t.Error("1 test failing")
 	}

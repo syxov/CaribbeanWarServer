@@ -9,13 +9,13 @@ import (
 )
 
 func TestCore(t *testing.T) {
-	core := NewCore(point.Point3D{0, 10, 0}, 0, math.Pi/4, -1, 0)
+	core := NewCore(point.Point3D{0, 0, 0}, math.Pi/4, 0, -1, 0)
 	rect := core.GetBounds()
 	expectedValue := rtree.NewRect(rtree.Point{-0.5, -0.5}, []float64{1, 1})
 	if !rectEqual(rect, expectedValue) {
 		expectedValueMarshal, _ := json.Marshal(expectedValue)
 		rectMarshal, _ := json.Marshal(rect)
-		t.Error("Expected that", string(rectMarshal), "is equal to", string(expectedValueMarshal))
+		t.Error("Expected that before update", string(rectMarshal), "is equal to", string(expectedValueMarshal))
 	}
 	core.UpdatePosition(1)
 	rect = core.GetBounds()
@@ -23,8 +23,9 @@ func TestCore(t *testing.T) {
 	if !rectEqual(rect, expectedValue) {
 		expectedValueMarshal, _ := json.Marshal(expectedValue)
 		rectMarshal, _ := json.Marshal(rect)
-		t.Error("Expected that", string(rectMarshal), "is equal to", string(expectedValueMarshal))
+		t.Error("Expected that after update", string(rectMarshal), "is equal to", string(expectedValueMarshal))
 	}
+	t.Log(core.GetBounds().ToRectangle())
 }
 
 func rectEqual(r1, r2 *rtree.Rect) bool {

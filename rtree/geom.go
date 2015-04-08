@@ -123,7 +123,6 @@ type rectangle []point
 
 const length = 4
 
-// containsRect tests whether r2 is is located inside r1.
 func (r1 *Rect) intersectRect(r2 *Rect) bool {
 	rect1, rect2 := *(r1.ToRectangle()), *(r2.ToRectangle())
 	for _, p := range rect1 {

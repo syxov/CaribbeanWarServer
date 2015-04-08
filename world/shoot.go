@@ -26,7 +26,7 @@ func (self *storage) shoot(user *structs.User, incomeMessage messagesStructs.Sho
 	for _, neigbour := range user.NearestUsers {
 		neigbour.Conn.WriteJSON(message)
 	}
-	core := structs.NewCore(details.Location, details.Angle, user.RotationAngle, details.Direction, user.ID)
+	core := structs.NewCore(details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
 	user.Unlock()
 	go self.updateCore(core, user)
 	user.GetConn().WriteJSON(message)
@@ -38,7 +38,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		timer.Stop()
 		sendErrorMessage(user, recover())
 	}()
-	for !core.UnderWater() {
+	for core.OverWater() {
 		now := time.Now().UnixNano()
 		<-timer.C
 		core.UpdatePosition(float64(time.Now().UnixNano()-now) / float64(time.Second))

@@ -30,9 +30,6 @@ func (self *storage) movement(user *structs.User) {
 	for user.IsInWorld() {
 		timeStamp := time.Now().UnixNano()
 		<-ticker.C
-		if !user.IsMoved() {
-			continue
-		}
 		isDeleted := self.ocean.Delete(user)
 		if isDeleted {
 			user.UpdatePosition(float64(time.Now().UnixNano()-timeStamp) / float64(time.Second))
