@@ -126,44 +126,39 @@ const length = 4
 func (r1 *Rect) intersectRect(r2 *Rect) bool {
 	rect1, rect2 := *(r1.ToRectangle()), *(r2.ToRectangle())
 	for _, p := range rect1 {
-		inReactangle := true
-		ali := align(&rect2[0], &rect2[1], &p)
+		inRectangle := true
+		ali := isLeftAlign(&rect2[0], &rect2[1], &p)
 		for i := 1; i < length; i++ {
-			ali_t := align(&rect2[i], &rect2[(i+1)%length], &p)
-			if !sameSign(ali_t, ali) {
-				inReactangle = false
+			ali_t := isLeftAlign(&rect2[i], &rect2[(i+1)%length], &p)
+			if ali != ali_t {
+				inRectangle = false
 				break
 			}
 		}
-		if inReactangle {
+		if inRectangle {
 			return true
 		}
 	}
 	return false
 }
 
-func sameSign(_x, _y float64) bool {
-	x, y := int(_x), int(_y)
-	t := (x ^ y) >> 31
-	return ((x + t) ^ t) == x
-}
-
-func align(a, b, c *point) float64 {
-	return a.x*(b.y-c.y) + a.y*(c.x-b.x) + b.x*c.y - c.x*b.y
+func isLeftAlign(a, b, c *point) bool {
+	return a.x*(b.y-c.y)-a.y*(b.x-c.x)+b.x*c.y-c.x*b.y >= 0
 }
 
 func (self *Rect) ToRectangle() *rectangle {
+	center := &point{x: (self.P[0] + self.Q[0]) / 2.0, y: (self.P[1] + self.Q[1]) / 2.0}
 	return &rectangle{
-		rotatePoint(&point{x: self.P[0], y: self.P[1]}, self.angle),
-		rotatePoint(&point{x: self.P[0] + self.Q[0], y: self.P[1]}, self.angle),
-		rotatePoint(&point{x: self.P[0] + self.Q[0], y: self.P[1] + self.Q[1]}, self.angle),
-		rotatePoint(&point{x: self.P[0], y: self.P[1] + self.Q[1]}, self.angle),
+		rotatePoint(&point{x: self.P[0], y: self.P[1]}, center, self.angle),
+		rotatePoint(&point{x: self.Q[0], y: self.P[1]}, center, self.angle),
+		rotatePoint(&point{x: self.Q[0], y: self.Q[1]}, center, self.angle),
+		rotatePoint(&point{x: self.P[0], y: self.Q[1]}, center, self.angle),
 	}
-
 }
 
-func rotatePoint(p *point, angle float64) point {
-	return point{x: p.x*math.Cos(angle) - p.y*math.Sin(angle), y: p.x*math.Sin(angle) + p.y*math.Cos(angle)}
+func rotatePoint(p, center *point, angle float64) point {
+	angle = -angle
+	return point{x: center.x + (p.x-center.x)*math.Cos(angle) + (p.y-center.y)*math.Sin(angle), y: center.y - (p.x-center.x)*math.Sin(angle) + (p.y-center.y)*math.Cos(angle)}
 }
 
 // intersect computes the intersection of two rectangles.  If no intersection
@@ -211,16 +206,6 @@ func intersect(r1, r2 *Rect) *Rect {
 		q[i] = math.Min(b1, b2)
 	}
 	return NewRect(p, q)
-}
-
-// ToRect constructs a rectangle containing p with side lengths 2*tol.
-func (p Point) ToRect(tol float64) *Rect {
-	a, b := make([]float64, dim), make([]float64, dim)
-	for i := range p {
-		a[i] = p[i] - tol
-		b[i] = p[i] + tol
-	}
-	return NewRect(a, b)
 }
 
 // boundingBox constructs the smallest rectangle containing both r1 and r2.

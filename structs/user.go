@@ -65,11 +65,10 @@ func (self *User) SetMove(moveType string) {
 	}
 }
 
-func (self *User) UpdatePosition(delta float64) {
+func (self *User) UpdatePosition() {
 	self.Lock()
 	ship := self.SelectedShip
 	if ship != nil {
-		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
@@ -97,6 +96,9 @@ func (self *User) SetIsInWorld(is bool) {
 	self.inWorld.Store(is)
 }
 
-func (self *User) IsMoved() bool {
-	return self.speedRatio >= 0.000000001
+func (self *User) UpdateSpeed(delta float64) float64 {
+	if ship := self.SelectedShip; ship != nil {
+		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
+	}
+	return self.speedRatio
 }

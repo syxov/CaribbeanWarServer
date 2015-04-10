@@ -3,6 +3,7 @@ package structs
 import (
 	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/rtree"
+	"CaribbeanWarServer/testUtil"
 	"encoding/json"
 	"math"
 	"testing"
@@ -25,16 +26,11 @@ func TestCore(t *testing.T) {
 		rectMarshal, _ := json.Marshal(rect)
 		t.Error("Expected that after update", string(rectMarshal), "is equal to", string(expectedValueMarshal))
 	}
-	t.Log(core.GetBounds().ToRectangle())
 }
 
 func rectEqual(r1, r2 *rtree.Rect) bool {
-	return floatEqual(r1.P[0], r2.P[0]) &&
-		floatEqual(r1.P[1], r2.P[1]) &&
-		floatEqual(r1.Q[0], r2.Q[0]) &&
-		floatEqual(r1.Q[1], r2.Q[1])
-}
-
-func floatEqual(a, b float64) bool {
-	return math.Abs(a-b) < 0.0000001
+	return testUtil.FloatEqual(r1.P[0], r2.P[0]) &&
+		testUtil.FloatEqual(r1.P[1], r2.P[1]) &&
+		testUtil.FloatEqual(r1.Q[0], r2.Q[0]) &&
+		testUtil.FloatEqual(r1.Q[1], r2.Q[1])
 }
