@@ -6,23 +6,29 @@ import (
 	"time"
 )
 
-func (self *storage) move(user *structs.User, data messagesStructs.MoveIncome) {
-	user.SetMove(data.Details.Type)
-	user.Lock()
-	sendData := messagesStructs.MoveOutcome{
-		Action: "move",
-		Details: messagesStructs.MoveOutcomeDetails{
-			ID:       user.ID,
-			Type:     data.Details.Type,
-			Location: user.Location,
-			Alpha:    user.RotationAngle,
-		},
+func (self *storage) move(user *structs.User, ch chan *messagesStructs.MoveIncome) {
+	for {
+		if data, ok := <-ch; ok {
+			user.SetMove(data.Details.Type)
+			user.Lock()
+			sendData := messagesStructs.MoveOutcome{
+				Action: "move",
+				Details: messagesStructs.MoveOutcomeDetails{
+					ID:       user.ID,
+					Type:     data.Details.Type,
+					Location: user.Location,
+					Alpha:    user.RotationAngle,
+				},
+			}
+			for _, neigbour := range user.NearestUsers {
+				neigbour.Conn.WriteJSON(sendData)
+			}
+			user.GetConn().WriteJSON(sendData)
+			user.Unlock()
+		} else {
+			return
+		}
 	}
-	for _, neigbour := range user.NearestUsers {
-		neigbour.Conn.WriteJSON(sendData)
-	}
-	user.GetConn().WriteJSON(sendData)
-	user.Unlock()
 }
 
 func (self *storage) movement(user *structs.User) {

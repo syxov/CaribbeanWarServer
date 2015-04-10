@@ -7,29 +7,35 @@ import (
 	"time"
 )
 
-func (self *storage) shoot(user *structs.User, incomeMessage messagesStructs.ShootIncome) {
+func (self *storage) shoot(user *structs.User, ch chan *messagesStructs.ShootIncome) {
 	defer func() {
 		sendErrorMessage(user, recover())
 	}()
-	details := incomeMessage.Details
-	user.Lock()
-	message := messagesStructs.ShootOutcome{
-		Action: "shoot",
-		Details: messagesStructs.ShootOutcomeDetails{
-			ID:        user.ID,
-			Alpha:     user.RotationAngle,
-			Angle:     details.Angle,
-			Location:  details.Location,
-			Direction: details.Direction,
-		},
+	for {
+		if incomeMessage, ok := <-ch; ok {
+			details := incomeMessage.Details
+			user.Lock()
+			message := messagesStructs.ShootOutcome{
+				Action: "shoot",
+				Details: messagesStructs.ShootOutcomeDetails{
+					ID:        user.ID,
+					Alpha:     user.RotationAngle,
+					Angle:     details.Angle,
+					Location:  details.Location,
+					Direction: details.Direction,
+				},
+			}
+			for _, neigbour := range user.NearestUsers {
+				neigbour.Conn.WriteJSON(message)
+			}
+			core := structs.NewCore(details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
+			user.Unlock()
+			go self.updateCore(core, user)
+			user.GetConn().WriteJSON(message)
+		} else {
+			return
+		}
 	}
-	for _, neigbour := range user.NearestUsers {
-		neigbour.Conn.WriteJSON(message)
-	}
-	core := structs.NewCore(details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
-	user.Unlock()
-	go self.updateCore(core, user)
-	user.GetConn().WriteJSON(message)
 }
 
 func (self *storage) updateCore(core *structs.Core, user *structs.User) {

@@ -14,23 +14,29 @@ func (self *storage) message(user *structs.User) {
 	}()
 
 	var message messagesStructs.Message
+	chatCn := make(chan *messagesStructs.Message, 5)
+	moveCh := make(chan *messagesStructs.MoveIncome, 5)
+	shootCh := make(chan *messagesStructs.ShootIncome, 5)
+	go self.chat(chatCn)
+	go self.move(user, moveCh)
+	go self.shoot(user, shootCh)
 	for user.IsInWorld() {
 		if err := user.GetConn().ReadJSON(&message); err == nil {
 			marshaled, _ := json.Marshal(message)
 			switch message.Action {
 			case "exitWorld":
 				go self.remove(user, true)
-				return
+				break
 			case "chat":
-				go self.chat(&message)
+				chatCn <- &message
 			case "move":
 				var moveMessage messagesStructs.MoveIncome
 				json.Unmarshal(marshaled, &moveMessage)
-				go self.move(user, moveMessage)
+				moveCh <- &moveMessage
 			case "shoot":
 				var shootMessage messagesStructs.ShootIncome
 				json.Unmarshal(marshaled, &shootMessage)
-				go self.shoot(user, shootMessage)
+				shootCh <- &shootMessage
 			default:
 				user.GetConn().WriteJSON(messagesStructs.ErrorMessage("unrecognized action " + message.Action))
 			}
@@ -42,6 +48,9 @@ func (self *storage) message(user *structs.User) {
 			}
 		}
 	}
+	close(chatCn)
+	close(moveCh)
+	close(shootCh)
 }
 
 func (self *storage) processError(user *structs.User, err interface{}) {
