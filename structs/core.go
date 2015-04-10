@@ -49,6 +49,6 @@ func (self *Core) OverWater() bool {
 const radius float64 = 1
 
 func (self *Core) GetBounds(r ...int) *rtree.Rect {
-	lenBetweenPoint := math.Sqrt(math.Pow(self.CurrentPosition.X-self.previousPosition.X, 2) + math.Pow(self.CurrentPosition.Y-self.previousPosition.Y, 2))
+	lenBetweenPoint := math.Hypot(self.CurrentPosition.X-self.previousPosition.X, self.CurrentPosition.Y-self.previousPosition.Y)
 	return rtree.NewRect(rtree.Point{self.previousPosition.X - radius/2.0, self.previousPosition.Y - radius/2.0}, []float64{radius + lenBetweenPoint, radius}, self.ShipRotationAngle)
 }
