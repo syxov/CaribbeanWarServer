@@ -70,6 +70,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 			}
 			looser.SelectedShip.CurrentHP = uint16(intmath.Max(int(looser.SelectedShip.CurrentHP)-87, 0))
 			if looser.SelectedShip.CurrentHP == 0 {
+				looser.DoKill()
 				message := messagesStructs.Dead{
 					Action: "death",
 					Details: messagesStructs.DeadDetails{
