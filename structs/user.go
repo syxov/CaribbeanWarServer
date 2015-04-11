@@ -75,6 +75,14 @@ func (self *User) UpdatePosition() {
 	self.Unlock()
 }
 
+func (self *User) SendForAll(message interface{}) {
+	self.Lock()
+	for _, p := range self.NearestUsers {
+		p.Conn.WriteJSON(message)
+	}
+	self.Unlock()
+}
+
 func (self *User) GetConn() *commonStructs.Connection {
 	return self.conn
 }

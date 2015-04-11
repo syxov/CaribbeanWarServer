@@ -20,11 +20,8 @@ func (self *storage) move(user *structs.User, ch chan *messagesStructs.MoveIncom
 					Alpha:    user.RotationAngle,
 				},
 			}
-			for _, neigbour := range user.NearestUsers {
-				neigbour.Conn.WriteJSON(sendData)
-			}
-			user.GetConn().WriteJSON(sendData)
 			user.Unlock()
+			go user.SendForAll(sendData)
 		} else {
 			return
 		}

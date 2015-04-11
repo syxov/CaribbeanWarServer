@@ -47,3 +47,12 @@ type DeadDetails struct {
 	Location point.Point2D `json:"position"`
 	Rotation float64       `json:"rotation"`
 }
+
+type Miss struct {
+	Message
+	Details MissDetails `json:"details"`
+}
+
+type MissDetails struct {
+	Location point.Point3D `json:"position"`
+}

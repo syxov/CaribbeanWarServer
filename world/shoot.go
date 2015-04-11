@@ -26,13 +26,10 @@ func (self *storage) shoot(user *structs.User, ch chan *messagesStructs.ShootInc
 					Direction: details.Direction,
 				},
 			}
-			for _, neigbour := range user.NearestUsers {
-				neigbour.Conn.WriteJSON(message)
-			}
 			core := structs.NewCore(details.Location, user.RotationAngle, details.Angle, details.Direction, user.ID)
 			user.Unlock()
 			go self.updateCore(core, user)
-			user.GetConn().WriteJSON(message)
+			go user.SendForAll(message)
 		} else {
 			return
 		}
@@ -63,11 +60,8 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 					Damage:   87,
 				},
 			}
+			looser.SendForAll(message)
 			looser.Lock()
-			looser.GetConn().WriteJSON(message)
-			for _, neigbour := range looser.NearestUsers {
-				neigbour.Conn.WriteJSON(message)
-			}
 			looser.SelectedShip.CurrentHP = uint16(intmath.Max(int(looser.SelectedShip.CurrentHP)-87, 0))
 			if looser.SelectedShip.CurrentHP == 0 {
 				looser.DoKill()
@@ -79,21 +73,23 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 						Rotation: looser.RotationAngle,
 					},
 				}
-				looser.GetConn().WriteJSON(message)
-				for _, neigbour := range looser.NearestUsers {
-					neigbour.Conn.WriteJSON(message)
-				}
+				looser.Unlock()
+				looser.SendForAll(message)
+			} else {
+				looser.Unlock()
 			}
-			looser.Unlock()
 			return
 		}
 	}
-	user.GetConn().WriteJSON(map[string]interface{}{
-		"action": "miss",
-		"details": map[string]interface{}{
-			"position": core.CurrentPosition,
+	missMessage := messagesStructs.Miss{
+		Message: messagesStructs.Message{
+			Action: "miss",
 		},
-	})
+		Details: messagesStructs.MissDetails{
+			Location: core.CurrentPosition,
+		},
+	}
+	user.SendForAll(missMessage)
 }
 
 func sendErrorMessage(user *structs.User, err interface{}) {
