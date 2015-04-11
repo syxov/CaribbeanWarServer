@@ -30,11 +30,11 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		nick                               string
 		rotation, coordinateX, coordinateY float64
 
-		name        string
-		weight      uint16
-		cannonCount byte
-		speed       float64
-		hp          uint16
+		name          string
+		weight        uint16
+		cannonCount   byte
+		speed         float64
+		hp, currentHP uint16
 	)
 	err := self.db.QueryRow(`
 		SELECT id, cash, nick, coordinate_x, coordinate_y, rotation FROM users 
@@ -44,18 +44,20 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		return nil, err
 	}
 	rows, err := self.db.Query(`
-		SELECT * FROM ships
-		WHERE id IN (
-			SELECT ship_id FROM user_ships
-			WHERE user_id=$1
-		)
+		SELECT ships.*, user_ships.ship_hp 
+		FROM user_ships INNER JOIN ships
+		ON user_ships.ship_id = ships.id
+		WHERE  user_id=$1
 	`, id)
 	if err != nil {
 		return nil, err
 	}
 	ships := []commonStructs.Ship{}
 	for rows.Next() {
-		rows.Scan(&shipId, &name, &weight, &cannonCount, &speed, &hp)
+		rows.Scan(&shipId, &name, &weight, &cannonCount, &speed, &hp, &currentHP)
+		if currentHP == 0 {
+			currentHP = hp
+		}
 		ships = append(ships, commonStructs.Ship{
 			ID:          shipId,
 			Name:        name,
@@ -63,6 +65,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 			CannonCount: cannonCount,
 			Speed:       speed,
 			HP:          hp,
+			CurrentHP:   currentHP,
 		})
 	}
 	return &structs.User{
