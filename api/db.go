@@ -47,7 +47,7 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		SELECT ships.*, user_ships.ship_hp 
 		FROM user_ships INNER JOIN ships
 		ON user_ships.ship_id = ships.id
-		WHERE  user_id=$1
+		WHERE user_id=$1
 	`, id)
 	if err != nil {
 		return nil, err

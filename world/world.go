@@ -47,11 +47,11 @@ func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	}
 	self.db.SaveUserLocation(user)
 	self.db.SaveShipHP(user)
-	user.NearestUsers = nil
-	user.SelectedShip = nil
 	self.ocean.Delete(user)
 	if needAddToHarbor {
 		addToHarbor(user)
+		user.NearestUsers = nil
+		user.SelectedShip = nil
 	}
 	user.Unlock()
 }
