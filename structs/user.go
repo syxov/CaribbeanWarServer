@@ -68,7 +68,9 @@ func (self *User) UpdatePosition() {
 	if ship != nil {
 		self.Location.X += self.speedRatio * math.Cos(self.RotationAngle)
 		self.Location.Y += self.speedRatio * math.Sin(-self.RotationAngle)
-		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
+		rotationDirection := float64(atomic.LoadInt32(&self.rotationDirection))
+		sailsMode := float64(atomic.LoadInt32(&self.sailsMode))
+		self.RotationAngle = math.Mod(self.RotationAngle+(rotationDirection*angleSpeed*self.speedRatio)/(sailsMode+1.0), 2*math.Pi)
 	}
 	self.Unlock()
 }
@@ -99,7 +101,7 @@ func (self *User) SetIsKilled(is bool) {
 
 func (self *User) UpdateSpeed(delta float64) float64 {
 	if ship := self.SelectedShip; ship != nil {
-		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
+		self.speedRatio = lerp(self.speedRatio, float64(atomic.LoadInt32(&self.sailsMode))*ship.Speed*delta/4.0, velocity)
 	}
 	return self.speedRatio
 }

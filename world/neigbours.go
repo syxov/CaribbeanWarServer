@@ -22,6 +22,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 	for _, value := range spatials {
 		convertedValue := value.(*structs.User)
 		if convertedValue.ID != user.ID {
+			convertedValue.Lock()
 			nearestUsers = append(nearestUsers, commonStructs.NearestUser{
 				ID:            convertedValue.ID,
 				Conn:          convertedValue.GetConn(),
@@ -30,6 +31,7 @@ func (self *storage) findNeigbours(user *structs.User) {
 				Location:      convertedValue.Location,
 				RotationAngle: convertedValue.RotationAngle,
 			})
+			convertedValue.Unlock()
 		}
 	}
 	sort.Sort(&nearestUsers)
