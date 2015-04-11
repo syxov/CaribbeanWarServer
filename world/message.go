@@ -17,10 +17,11 @@ func (self *storage) message(user *structs.User) {
 	chatCn := make(chan *messagesStructs.Message, 15)
 	moveCh := make(chan *messagesStructs.MoveIncome, 15)
 	shootCh := make(chan *messagesStructs.ShootIncome, 1)
-	respawn := make(chan bool, 1)
+	respawnCh := make(chan bool, 1)
 	go self.chat(chatCn)
 	go self.move(user, moveCh)
 	go self.shoot(user, shootCh)
+	go self.respawn(user, respawnCh)
 	for user.IsInWorld() {
 		if err := user.GetConn().ReadJSON(&message); err == nil {
 			marshaled, _ := json.Marshal(message)
@@ -44,7 +45,7 @@ func (self *storage) message(user *structs.User) {
 				}
 			case "respawn":
 				if user.IsKilled() {
-					respawn <- true
+					respawnCh <- true
 				}
 			default:
 				user.GetConn().WriteJSON(messagesStructs.ErrorMessage("unrecognized action " + message.Action))
@@ -60,7 +61,7 @@ func (self *storage) message(user *structs.User) {
 	close(chatCn)
 	close(moveCh)
 	close(shootCh)
-	close(respawn)
+	close(respawnCh)
 }
 
 func (self *storage) processError(user *structs.User, err interface{}) {
