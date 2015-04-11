@@ -77,6 +77,7 @@ func (self *User) UpdatePosition() {
 
 func (self *User) SendForAll(message interface{}) {
 	self.Lock()
+	self.conn.WriteJSON(message)
 	for _, p := range self.NearestUsers {
 		p.Conn.WriteJSON(message)
 	}
