@@ -30,6 +30,6 @@ type PositionMessage struct {
 
 type PositionMessageDetails struct {
 	X     float64 `json:"x"`
-	Y     float64 `json:"y"`
+	Y     float64 `json:"z"`
 	Alpha float64 `json:"alpha"`
 }

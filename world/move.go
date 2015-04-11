@@ -34,6 +34,10 @@ func (self *storage) move(user *structs.User, ch chan *messagesStructs.MoveIncom
 func (self *storage) movement(user *structs.User) {
 	ticker := time.NewTicker(1000 / 35 * time.Millisecond)
 	for user.IsInWorld() {
+		if user.IsKilled() {
+			time.Sleep(2 * time.Second)
+			continue
+		}
 		timeStamp := time.Now().UnixNano()
 		<-ticker.C
 		if speed := user.UpdateSpeed(float64(time.Now().UnixNano()-timeStamp) / float64(time.Second)); speed > 0.00001 {

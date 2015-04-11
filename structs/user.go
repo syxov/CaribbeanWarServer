@@ -2,6 +2,7 @@ package structs
 
 import (
 	"CaribbeanWarServer/commonStructs"
+	"CaribbeanWarServer/intmath"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/rtree"
@@ -29,7 +30,7 @@ type User struct {
 	NearestUsers      commonStructs.NearestUsers `json:"nearestUsers"`
 	RotationAngle     float64                    `json:"alpha"`
 	conn              *commonStructs.Connection
-	inWorld           atomic.Value
+	inWorld, killed   atomic.Value
 	sailsMode         int32
 	speedRatio        float64
 	rotationDirection int32
@@ -47,9 +48,9 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 func (self *User) SetMove(moveType string) {
 	switch moveType {
 	case "upward":
-		atomic.StoreInt32(&self.sailsMode, min(self.sailsMode+1, 3))
+		atomic.StoreInt32(&self.sailsMode, intmath.Min32(self.sailsMode+1, 3))
 	case "backward":
-		atomic.StoreInt32(&self.sailsMode, max(self.sailsMode-1, 0))
+		atomic.StoreInt32(&self.sailsMode, intmath.Max32(self.sailsMode-1, 0))
 	case "left":
 		atomic.StoreInt32(&self.rotationDirection, left)
 	case "right":
@@ -61,21 +62,6 @@ func (self *User) SetMove(moveType string) {
 	}
 }
 
-func doz(x, y int32) int32 {
-	if x > y {
-		return x - y
-	}
-	return 0
-}
-
-func max(x, y int32) int32 {
-	return y + doz(x, y)
-}
-
-func min(x, y int32) int32 {
-	return x - doz(x, y)
-}
-
 func (self *User) UpdatePosition() {
 	self.Lock()
 	ship := self.SelectedShip
@@ -85,10 +71,6 @@ func (self *User) UpdatePosition() {
 		self.RotationAngle = math.Mod(self.RotationAngle+(float64(self.rotationDirection)*angleSpeed*self.speedRatio)/(float64(self.sailsMode)+1.0), 2*math.Pi)
 	}
 	self.Unlock()
-}
-
-func lerp(start, end, delta float64) float64 {
-	return start + delta*(end-start)
 }
 
 func (self *User) GetConn() *commonStructs.Connection {
@@ -107,9 +89,28 @@ func (self *User) SetIsInWorld(is bool) {
 	self.inWorld.Store(is)
 }
 
+func (self *User) IsKilled() bool {
+	return self.killed.Load().(bool)
+}
+
+func (self *User) SetIsKilled(is bool) {
+	self.killed.Store(is)
+}
+
 func (self *User) UpdateSpeed(delta float64) float64 {
 	if ship := self.SelectedShip; ship != nil {
 		self.speedRatio = lerp(self.speedRatio, float64(self.sailsMode)*ship.Speed*delta/4.0, velocity)
 	}
 	return self.speedRatio
+}
+
+func (self *User) DoKill() {
+	self.SetIsKilled(true)
+	self.speedRatio = 0
+	self.sailsMode = 0
+	self.rotationDirection = 0
+}
+
+func lerp(start, end, delta float64) float64 {
+	return start + delta*(end-start)
 }

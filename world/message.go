@@ -14,9 +14,10 @@ func (self *storage) message(user *structs.User) {
 	}()
 
 	var message messagesStructs.Message
-	chatCn := make(chan *messagesStructs.Message, 5)
-	moveCh := make(chan *messagesStructs.MoveIncome, 5)
-	shootCh := make(chan *messagesStructs.ShootIncome, 5)
+	chatCn := make(chan *messagesStructs.Message, 15)
+	moveCh := make(chan *messagesStructs.MoveIncome, 15)
+	shootCh := make(chan *messagesStructs.ShootIncome, 1)
+	respawn := make(chan bool, 1)
 	go self.chat(chatCn)
 	go self.move(user, moveCh)
 	go self.shoot(user, shootCh)
@@ -30,13 +31,21 @@ func (self *storage) message(user *structs.User) {
 			case "chat":
 				chatCn <- &message
 			case "move":
-				var moveMessage messagesStructs.MoveIncome
-				json.Unmarshal(marshaled, &moveMessage)
-				moveCh <- &moveMessage
+				if !user.IsKilled() {
+					var moveMessage messagesStructs.MoveIncome
+					json.Unmarshal(marshaled, &moveMessage)
+					moveCh <- &moveMessage
+				}
 			case "shoot":
-				var shootMessage messagesStructs.ShootIncome
-				json.Unmarshal(marshaled, &shootMessage)
-				shootCh <- &shootMessage
+				if !user.IsKilled() {
+					var shootMessage messagesStructs.ShootIncome
+					json.Unmarshal(marshaled, &shootMessage)
+					shootCh <- &shootMessage
+				}
+			case "respawn":
+				if user.IsKilled() {
+					respawn <- true
+				}
 			default:
 				user.GetConn().WriteJSON(messagesStructs.ErrorMessage("unrecognized action " + message.Action))
 			}
@@ -51,6 +60,7 @@ func (self *storage) message(user *structs.User) {
 	close(chatCn)
 	close(moveCh)
 	close(shootCh)
+	close(respawn)
 }
 
 func (self *storage) processError(user *structs.User, err interface{}) {

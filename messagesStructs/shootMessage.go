@@ -36,3 +36,14 @@ type HitDetails struct {
 	Location point.Point3D `json:"location"`
 	Damage   uint          `json:"damage"`
 }
+
+type Dead struct {
+	Action  string      `json:"action"`
+	Details DeadDetails `json:"details"`
+}
+
+type DeadDetails struct {
+	ID       uint          `json:"id"`
+	Location point.Point2D `json:"position"`
+	Rotation float64       `json:"rotation"`
+}

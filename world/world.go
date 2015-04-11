@@ -30,6 +30,7 @@ func Add(user *structs.User) {
 
 func (self *storage) add(user *structs.User) {
 	user.SetIsInWorld(true)
+	user.SetIsKilled(false)
 	self.ocean.Insert(user)
 	self.findNeigbours(user)
 	go self.message(user)
@@ -40,11 +41,15 @@ func (self *storage) add(user *structs.User) {
 
 func (self *storage) remove(user *structs.User, needAddToHarbor bool) {
 	user.Lock()
+	user.SetIsInWorld(false)
+	if user.IsKilled() {
+		self.doRespawn(user)
+	}
+	self.db.SaveUserLocation(user)
+	self.db.SaveShipHP(user)
 	user.NearestUsers = nil
 	user.SelectedShip = nil
-	user.SetIsInWorld(false)
 	self.ocean.Delete(user)
-	self.db.SaveUserLocation(user)
 	if needAddToHarbor {
 		addToHarbor(user)
 	}

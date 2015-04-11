@@ -87,3 +87,12 @@ func (self *DbConnection) SaveUserLocation(user *structs.User) error {
 	`, user.Location.X, user.Location.Y, user.RotationAngle, user.ID)
 	return err
 }
+
+func (self *DbConnection) SaveShipHP(user *structs.User) error {
+	_, err := self.db.Query(`
+		UPDATE user_ships
+		SET ship_hp=$1
+		WHERE user_id=$2 AND ship_id=$3
+	`, user.SelectedShip.CurrentHP, user.ID, user.SelectedShip.ID)
+	return err
+}

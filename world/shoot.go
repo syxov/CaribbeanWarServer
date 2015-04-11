@@ -1,6 +1,7 @@
 package world
 
 import (
+	"CaribbeanWarServer/intmath"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
@@ -65,6 +66,21 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 			looser.GetConn().WriteJSON(message)
 			for _, neigbour := range looser.NearestUsers {
 				neigbour.Conn.WriteJSON(message)
+			}
+			looser.SelectedShip.CurrentHP = uint16(intmath.Max(int(looser.SelectedShip.CurrentHP)-87, 0))
+			if looser.SelectedShip.CurrentHP == 0 {
+				message := messagesStructs.Dead{
+					Action: "death",
+					Details: messagesStructs.DeadDetails{
+						ID:       looser.ID,
+						Location: looser.Location,
+						Rotation: looser.RotationAngle,
+					},
+				}
+				looser.GetConn().WriteJSON(message)
+				for _, neigbour := range looser.NearestUsers {
+					neigbour.Conn.WriteJSON(message)
+				}
 			}
 			looser.Unlock()
 			return
