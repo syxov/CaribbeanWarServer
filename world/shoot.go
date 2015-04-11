@@ -50,7 +50,8 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 		<-timer.C
 		core.UpdatePosition(float64(time.Now().UnixNano()-now) / float64(time.Second))
 		spatials := self.ocean.SearchIntersectWithLimit(1, core.GetBounds(), func(spat *rtree.Spatial) bool {
-			return (*spat).(*structs.User).ID != user.ID
+			spatialUser := (*spat).(*structs.User)
+			return spatialUser.ID != user.ID && !spatialUser.IsKilled()
 		})
 		if len(spatials) != 0 {
 			looser := spatials[0].(*structs.User)
