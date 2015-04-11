@@ -67,7 +67,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 				neigbour.Conn.WriteJSON(message)
 			}
 			looser.Unlock()
-			break
+			return
 		}
 	}
 	user.GetConn().WriteJSON(map[string]interface{}{
