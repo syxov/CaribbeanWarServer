@@ -29,6 +29,7 @@ type PositionMessage struct {
 }
 
 type PositionMessageDetails struct {
+	ID    uint    `json:"id"`
 	X     float64 `json:"x"`
 	Y     float64 `json:"z"`
 	Alpha float64 `json:"alpha"`

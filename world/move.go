@@ -44,11 +44,12 @@ func (self *storage) movement(user *structs.User) {
 				self.ocean.Insert(user)
 			}
 		}
-		user.GetConn().WriteJSON(messagesStructs.PositionMessage{
+		user.SendForAll(messagesStructs.PositionMessage{
 			Message: messagesStructs.Message{
 				Action: "position",
 			},
 			Details: messagesStructs.PositionMessageDetails{
+				ID:    user.ID,
 				X:     user.Location.X,
 				Y:     user.Location.Y,
 				Alpha: user.RotationAngle,
