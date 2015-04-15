@@ -20,13 +20,14 @@ func (self *storage) doRespawn(user *structs.User) {
 	user.Location = point.Point2D{0, 0}
 	user.RotationAngle = 0.3
 	user.SetIsKilled(false)
-	user.GetConn().WriteJSON(messagesStructs.RespawnOutcome{
-		Details: messagesStructs.RespawnOutcomeDetails{
-			Location: user.Location,
-			Rotation: user.RotationAngle,
-		},
+	user.SendForAll(messagesStructs.RespawnOutcome{
 		Message: messagesStructs.Message{
 			Action: "respawn",
+		},
+		Details: messagesStructs.RespawnOutcomeDetails{
+			ID:       user.ID,
+			Location: user.Location,
+			Rotation: user.RotationAngle,
 		},
 	})
 }

@@ -12,6 +12,7 @@ type RespawnOutcome struct {
 }
 
 type RespawnOutcomeDetails struct {
+	ID       uint          `json:"id"`
 	Location point.Point2D `json:"position"`
 	Rotation float64       `json:"rotation"`
 }
