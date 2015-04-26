@@ -1,10 +1,10 @@
 package world
 
 import (
-	"CaribbeanWarServer/intmath"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/rtree"
 	"CaribbeanWarServer/structs"
+	"github.com/syxov/intmath"
 	"time"
 )
 
@@ -62,7 +62,7 @@ func (self *storage) updateCore(core *structs.Core, user *structs.User) {
 			}
 			looser.SendForAll(message)
 			looser.Lock()
-			looser.SelectedShip.CurrentHP = uint16(intmath.Max(int(looser.SelectedShip.CurrentHP)-87, 0))
+			looser.SelectedShip.CurrentHP = intmath.Max(looser.SelectedShip.CurrentHP-87, 0)
 			if looser.SelectedShip.CurrentHP == 0 {
 				looser.DoKill()
 				message := messagesStructs.Dead{

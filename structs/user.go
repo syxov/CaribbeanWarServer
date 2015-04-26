@@ -2,10 +2,10 @@ package structs
 
 import (
 	"CaribbeanWarServer/commonStructs"
-	"CaribbeanWarServer/intmath"
 	"CaribbeanWarServer/messagesStructs"
 	"CaribbeanWarServer/point"
 	"CaribbeanWarServer/rtree"
+	"github.com/syxov/intmath"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -48,9 +48,9 @@ func (self *User) Bounds(radius ...float64) *rtree.Rect {
 func (self *User) SetMove(moveType string) {
 	switch moveType {
 	case "upward":
-		atomic.StoreInt32(&self.sailsMode, intmath.Min32(self.sailsMode+1, 3))
+		atomic.StoreInt32(&self.sailsMode, int32(intmath.Min(int(self.sailsMode+1), 3)))
 	case "backward":
-		atomic.StoreInt32(&self.sailsMode, intmath.Max32(self.sailsMode-1, 0))
+		atomic.StoreInt32(&self.sailsMode, int32(intmath.Max(int(self.sailsMode-1), 0)))
 	case "left":
 		atomic.StoreInt32(&self.rotationDirection, left)
 	case "right":

@@ -31,10 +31,10 @@ func (self *DbConnection) GetUserInfo(email, password string) (*structs.User, er
 		rotation, coordinateX, coordinateY float64
 
 		name          string
-		weight        uint16
+		weight        int
 		cannonCount   byte
 		speed         float64
-		hp, currentHP uint16
+		hp, currentHP int
 	)
 	err := self.db.QueryRow(`
 		SELECT id, cash, nick, coordinate_x, coordinate_y, rotation FROM users 

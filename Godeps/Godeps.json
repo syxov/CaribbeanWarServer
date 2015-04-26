@@ -11,6 +11,10 @@
 			"Rev": "c6325123e6d45115749734a8bc35060ebac74d0e"
 		},
 		{
+			"ImportPath": "github.com/syxov/intmath",
+			"Rev": "cc6c23d6f8281aaa0c1079285c70714b956f6d5a"
+		},
+		{
 			"ImportPath": "github.com/zond/gotomic",
 			"Rev": "5b217c5578228ff3979c9f9459959176fb54c388"
 		}
